@@ -265,6 +265,60 @@
 }
     </style>
 
+
+
+    <style id="life-black-background-override">
+        /* 全画面の背景をブラックに統一。文字色・株価の上昇下降色は維持 */
+        html, body, body * {
+            background-color: #000000 !important;
+            background-image: none !important;
+        }
+        html, body { color: var(--text-main); }
+        /* 透過レイヤーは黒背景に統一し、表示状態や配置は変更しない */
+        #playerRegistration, #identifierWelcome, .modal-overlay, .life-detail-modal {
+            background: #000000 !important;
+        }
+        /* 黒背景でも境界を見分けられるように控えめなグレーの線を維持 */
+        header, nav, .card, .asset-card, .stock-card, .modal-content,
+        .player-register-card, .identifier-welcome-card, .life-detail-dialog,
+        input, select, textarea, th, td {
+            border-color: #333333 !important;
+        }
+        /* 文字の色は各要素の既存設定を維持 */
+        .up { color: var(--accent-green) !important; }
+        .down { color: var(--accent-red) !important; }
+    </style>
+
+
+    <style id="life-readable-typography">
+        /* 日本語フォントを優先し、文字の輪郭と行間を整える */
+        html, body, body * {
+            font-family: "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+        body {
+            line-height: 1.65;
+            letter-spacing: 0.015em;
+        }
+        h1, h2, h3, h4, .card-title, .logo, .stock-name {
+            letter-spacing: 0.025em;
+            line-height: 1.45;
+        }
+        button, input, select, textarea {
+            font: inherit;
+            line-height: 1.5;
+        }
+        button { font-weight: 600; }
+        input, select, textarea { letter-spacing: 0.01em; }
+        .stock-price, .stock-change, .asset-value, .ranking-table,
+        .market-status-bar, .stock-code {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0;
+        }
+        canvas { font-family: "Noto Sans JP", "Noto Sans CJK JP", sans-serif !important; }
+    </style>
+
 </head>
 <body>
 
