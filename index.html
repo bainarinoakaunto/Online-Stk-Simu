@@ -224,13 +224,63 @@
         .life-detail-dialog ul { padding-left:1.3rem; }
         .life-detail-close { display:block; margin:18px 0 0 auto; border:0; border-radius:9px; padding:10px 18px; background:#1976e8; color:#fff; font-weight:700; cursor:pointer; }
         @media(max-width:600px) { .life-announcement { padding:12px; gap:9px; } .life-announcement p { font-size:.74rem; } .logo { font-size:1rem; } .life-mark { width:31px;height:31px; } }
+        .alpha-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border: 1px solid #888;
+  color: #fff;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  border-radius: 3px;
+}
+
+.bug-report-link {
+  display: inline-block;
+  margin-left: 10px;
+  color: #aaa;
+  font-size: 12px;
+  text-decoration: underline;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.bug-report-link:hover {
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .logo {
+    flex-wrap: wrap;
+  }
+
+  .bug-report-link {
+    margin-left: 0;
+  }
+}
     </style>
 
 </head>
 <body>
 
-    <header>
-        <div class="logo"><span class="life-mark">￥</span><span>株シミュレーター<span class="life-Online-word">LIFE</span></span></div>
+    <header><div class="logo">
+  <span class="life-mark">￥</span>
+  <span>
+    株シミュレーター<span class="life-word">LIFE-Online</span>
+  </span>
+  <span class="alpha-badge">α版</span>
+  <a
+    href="https://forms.gle/nzRGMY1887UdWCqi7"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="bug-report-link"
+  >バグ報告はこちら</a>
+</div>
         <div class="market-status-bar">
             <span id="market-time">----/--/-- --:--:--</span>
             <span id="market-status" class="status-badge status-closed">確認中...</span>
