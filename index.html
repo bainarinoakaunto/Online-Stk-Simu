@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>株シミュレーターLIFE｜株式取引シミュレーター</title>
+    <title>株シミュレーターLIFEオンライン｜株式取引シミュレーター</title>
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
@@ -230,7 +230,7 @@
 <body>
 
     <header>
-        <div class="logo"><span class="life-mark">￥</span><span>株シミュレーター<span class="life-word">LIFE</span></span></div>
+        <div class="logo"><span class="life-mark">￥</span><span>株シミュレーター<span class="life-Online-word">LIFE</span></span></div>
         <div class="market-status-bar">
             <span id="market-time">----/--/-- --:--:--</span>
             <span id="market-status" class="status-badge status-closed">確認中...</span>
@@ -245,45 +245,6 @@
             <div class="life-announcement-actions"><button type="button" class="life-announcement-detail" onclick="openLifeAnnouncementDetail()">詳細を見る</button></div>
         </div>
     </section>
-
-    <div id="lifeAnnouncementDetail" class="life-detail-modal" role="dialog" aria-modal="true" aria-labelledby="lifeDetailTitle" onclick="if(event.target===this)closeLifeAnnouncementDetail()">
-        <div class="life-detail-dialog">
-            <h2 id="lifeDetailTitle">【重要】旧株シミュレーター26.1のメンテナンスおよび今後のサービスについて</h2>
-            <p>いつも株シミュレーター26.1をご利用いただき、誠にありがとうございます。</p>
-            <p>旧株シミュレーター26.1では、サービスの復旧と安定した運用に向けてメンテナンスを実施してまいりました。現在も、システムの安定性や安全性、今後の保守管理を考慮し、旧サービスの運用方針と新しい環境への移行について検討を進めております。</p>
-
-            <h3>1. メンテナンスとシステムの見直しについて</h3>
-            <p>システム上の問題や昨今のセキュリティ情勢を踏まえ、従来の環境を継続して運用することについて、慎重に見直しを行っています。必要に応じて、機能の一時停止や利用制限が発生する場合があります。</p>
-            <p>Webサイトの機能やデータ処理に利用されるプログラミング言語の一つに「PHP」があります。PHPを使用するシステムでは、利用しているバージョンや設定、プログラムの内容に応じて、適切な更新・管理やセキュリティ対策を行うことが重要です。これはPHP自体が危険という意味ではなく、システム全体を適切に保守・管理する必要があるということです。</p>
-            <p>今回の運用見直しでは、システム構成や保守管理のしやすさなども考慮し、今後のサービス提供方法を検討しております。なお、この説明は一般的な技術情報を含むものであり、個別の脆弱性や調査結果の詳細を示すものではありません。</p>
-
-            <h3>2. 旧株シミュレーター26.1の閉鎖予定について</h3>
-            <p>旧株シミュレーター26.1は、当初2026年12月30日を閉鎖予定日としておりましたが、システム上の問題やセキュリティ面、今後の保守管理などを踏まえ、予定を前倒しして終了することを検討しております。</p>
-            <p><strong>現時点では閉鎖は完了しておらず、閉鎖日も確定していません。</strong> 今後の運用状況や移行準備の進捗により、サービスの提供方針が変更となる場合があります。利用可能な状態であっても、メンテナンスなどにより一部機能を利用できなくなる可能性があります。</p>
-
-            <h3>3. 株シミュレーターLIFEシリーズについて</h3>
-            <p>新シリーズ「株シミュレーターLIFE」は、サービスを順次公開していく予定です。その第一段階として、シリーズ内の<strong>株シミュレーターを先行して公開</strong>いたします。その他の関連サービスについては、準備が整い次第、順次公開していく方針です。</p>
-            <p>新シリーズでは、今後の保守管理や機能改善を考慮し、継続的に運用できるサービス環境を目指します。旧サービスと新サービスでは、機能やシステム構成、データの管理方法などが異なる場合があります。</p>
-
-            <h3>4. データの保存・移行について</h3>
-            <p>旧株シミュレーター26.1をご利用の方は、今後、株シミュレーターLIFEへの移行をご検討ください。ただし、旧サービスで保存されたデータを新サービスへそのまま移行できるとは限りません。</p>
-            <p>データの引き継ぎ可否は、利用しているブラウザーや端末、保存環境、データの状態などによって異なる場合があります。取引履歴や資産情報など、必要な情報がある場合は、旧サービスを利用できるうちに内容を確認し、ご自身で保存しておくことをおすすめします。</p>
-            <p>すべてのデータの復旧や移行を保証するものではありません。また、別の端末やブラウザーでは、以前のデータが表示されない場合がありますので、あらかじめご了承ください。</p>
-
-            <h3>5. 今後の運用と利用者の皆様へのお願い</h3>
-            <p>今後は、旧サービスの運用状況を確認しながら、必要なメンテナンスやサービス終了に向けた対応を検討するとともに、株シミュレーターLIFEシリーズの公開・運用を進めてまいります。サービスの提供状況や公開予定に変更が生じた場合は、必要に応じてお知らせいたします。</p>
-            <ul>
-                <li>旧サービスは、今後の状況によって利用できなくなる可能性があります。</li>
-                <li>閉鎖時期は未確定であり、当初の予定より早まる可能性があります。</li>
-                <li>旧サービスのデータは、新サービスへ移行できない場合があります。</li>
-                <li>必要な取引履歴や資産情報は、利用可能なうちにご自身で保存することをおすすめします。</li>
-            </ul>
-            <p>メンテナンスやサービス移行に伴い、ご不便やご迷惑をおかけする場合がございます。今後の安定したサービス運用に向けた対応として、ご理解とご協力を賜りますようお願い申し上げます。</p>
-            <p>今後とも、株シミュレーターならびに株シミュレーターLIFEシリーズをよろしくお願いいたします。</p>
-            <button type="button" class="life-detail-close" onclick="closeLifeAnnouncementDetail()">閉じる</button>
-        </div>
-    </div>
-
     <div class="container">
         <div id="page-dashboard" class="page active">
             <div class="portfolio-summary">
