@@ -360,6 +360,7 @@
                         <button class="btn" id="buy-btn" onclick="executeTrade('buy')">買い注文</button>
                         <button class="btn btn-sell" id="sell-btn" onclick="executeTrade('sell')">売り注文</button>
                     </div>
+                    <p style="font-size:.78rem;color:var(--text-sub);margin-top:10px;line-height:1.5;">サーバー負荷防止のため、取引操作は1利用者につき5分間に30回までです。市場データの自動同期は回数に含まれません。</p>
                 </div>
                 <div class="card">
                     <div class="card-title">企業情報</div>
@@ -1377,6 +1378,7 @@
         let lifeProfile = null;
         let lifePollTimer = null;
         let lifeRequestCounter = 0;
+        let lifeRefreshInFlight = false;
 
         function lifeRandomToken(){
             const a=new Uint8Array(24);crypto.getRandomValues(a);
@@ -1470,7 +1472,8 @@
             ['tradeIdentifier','welcomeTradeIdentifier'].forEach(key=>{const el=document.getElementById(key);if(el)el.textContent=id;});
         }
         async function refreshOnlineSnapshot(){
-            if(!lifeProfile)return false;
+            if(!lifeProfile || lifeRefreshInFlight)return false;
+            lifeRefreshInFlight=true;
             try{
                 const r=await lifeApi('snapshot',{playerId:lifeProfile.playerId,token:lifeProfile.token});
                 if(!r || !r.snapshot) throw new Error('口座データが応答に含まれていません。');
@@ -1490,14 +1493,38 @@
                 console.warn('LIFE online refresh:',e.message);
                 lifeSetStatus('同期できませんでした：'+e.message);
                 return false;
+            }finally{
+                lifeRefreshInFlight=false;
             }
+        }
+        async function refreshPublicMarket(){
+            if(lifeProfile || lifeRefreshInFlight)return false;
+            lifeRefreshInFlight=true;
+            try{
+                const data=await lifeApi('market');
+                state.stocks=Array.isArray(data.stocks)?data.stocks:[];
+                newsList=Array.isArray(data.news)?data.news:[];
+                renderDashboard();renderMarketGrid();
+                lifeSetStatus(state.stocks.length ? '市場データを同期しました' : '接続済み・銘柄データがありません');
+                return true;
+            }catch(e){
+                lifeSetStatus('銘柄情報を取得できません：'+e.message);
+                return false;
+            }finally{
+                lifeRefreshInFlight=false;
+            }
+        }
+        function startPublicMarketPolling(){
+            if(lifePollTimer)clearInterval(lifePollTimer);
+            refreshPublicMarket();
+            lifePollTimer=setInterval(refreshPublicMarket,5000);
         }
         function startLifePolling(){
             if(lifePollTimer)clearInterval(lifePollTimer);
             refreshOnlineSnapshot().then(ok=>{
                 if(ok){renderDashboard();renderMarketGrid();renderHistory();}
             });
-            lifePollTimer=setInterval(refreshOnlineSnapshot,15000);
+            lifePollTimer=setInterval(refreshOnlineSnapshot,5000);
         }
         initApp=function(){
             lifeProfile=lifeGetProfile();
@@ -1508,17 +1535,8 @@
             setInterval(updateMarketTimeAndStatus,1000);
             if(!lifeProfile){
                 document.getElementById('playerRegistration').style.display='flex';
-                // 登録画面を表示している間にも公開市場データを取得しておく
-                lifeApi('market').then(data=>{
-                    state.stocks=Array.isArray(data.stocks)?data.stocks:[];
-                    newsList=Array.isArray(data.news)?data.news:[];
-                    renderDashboard();
-                    renderMarketGrid();
-                    lifeSetStatus(state.stocks.length ? '市場データを読み込みました' : '接続済み・銘柄データがありません');
-                }).catch(e=>{
-                    lifeSetStatus('銘柄情報を取得できません：'+e.message+'（GASの初期設定・再デプロイを確認してください）');
-                    renderDashboard();renderMarketGrid();
-                });
+                // 登録前も公開市場データを5秒ごとに同期する。
+                startPublicMarketPolling();
                 return;
             }
             document.getElementById('playerRegistration').style.display='none';
@@ -1553,7 +1571,8 @@
                 if(rows.length===0){body.innerHTML='<tr><td colspan="6" style="text-align:center">まだランキングデータがありません。</td></tr>';return;}
                 rows.forEach((x,i)=>{
                     const tr=document.createElement('tr');if(x.playerId===lifeProfile?.playerId)tr.className='ranking-me';
-                    const vals=[String(i+1)+'位',x.name, '¥'+Number(x.totalAssets).toLocaleString(),Number(x.profitRate).toFixed(2)+'%',(x.cumulativeProfit>=0?'+':'')+'¥'+Number(x.cumulativeProfit).toLocaleString(),Number(x.overallScore).toFixed(2)];
+                    const displayName=String(x.name||'利用者'); // 仮想利用者も通常利用者と同じ表示
+                    const vals=[String(i+1)+'位',displayName, '¥'+Number(x.totalAssets).toLocaleString(),Number(x.profitRate).toFixed(2)+'%',(x.cumulativeProfit>=0?'+':'')+'¥'+Number(x.cumulativeProfit).toLocaleString(),Number(x.overallScore).toFixed(2)];
                     vals.forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});body.appendChild(tr);
                 });
             }catch(e){body.innerHTML='<tr><td colspan="6" style="text-align:center">'+escapeHtml(e.message)+'</td></tr>';}
