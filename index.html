@@ -1474,7 +1474,11 @@
                 if(!LIFE_API_URL || LIFE_API_URL.includes('PASTE_YOUR')){reject(new Error('GASのウェブアプリURLが設定されていません。index.html内のLIFE_API_URLを設定してください。'));return;}
                 const callback='lifeJsonp_'+(++lifeRequestCounter)+'_'+Date.now();
                 const script=document.createElement('script');
-                const timeout=setTimeout(()=>{cleanup();reject(new Error('サーバー応答がタイムアウトしました。'));},15000);
+                const timeout=setTimeout(()=>{cleanup();reject(new Error('現在、サーバーへのアクセスが集中しており、ランキングが正常に読み込めない場合がございます。
+
+ご迷惑をおかけして申し訳ございません。
+
+お手数ですが、ランキングボタンを再度押していただくか、しばらく時間をおいてから、もう一度本ページにアクセスしてください。'));},15000);
                 function cleanup(){clearTimeout(timeout);try{delete window[callback]}catch(e){}script.remove();}
                 window[callback]=(result)=>{cleanup();if(result&&result.ok===true)resolve(result);else reject(new Error(result&&result.error?String(result.error):'サーバー処理に失敗しました。'));};
                 const query=new URLSearchParams({action,callback,...Object.fromEntries(Object.entries(params).map(([k,v])=>[k,typeof v==='string'?v:JSON.stringify(v)]))});
