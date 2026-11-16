@@ -267,26 +267,25 @@
 
 
 
-    <style id="life-black-background-override">
-        /* 全画面の背景をブラックに統一。文字色・株価の上昇下降色は維持 */
-        html, body, body * {
-            background-color: #000000 !important;
-            background-image: none !important;
-        }
-        html, body { color: var(--text-main); }
-        /* 透過レイヤーは黒背景に統一し、表示状態や配置は変更しない */
-        #playerRegistration, #identifierWelcome, .modal-overlay, .life-detail-modal {
+    <style id="life-header-black-only">
+        /* 上部ヘッダー（バナー）のみ黒。ページ本文・カード類は既存の明るい配色を維持 */
+        header {
             background: #000000 !important;
+            background-image: none !important;
+            border-bottom: 1px solid #333333 !important;
+            color: #ffffff !important;
         }
-        /* 黒背景でも境界を見分けられるように控えめなグレーの線を維持 */
-        header, nav, .card, .asset-card, .stock-card, .modal-content,
-        .player-register-card, .identifier-welcome-card, .life-detail-dialog,
-        input, select, textarea, th, td {
-            border-color: #333333 !important;
+        header .logo, header .logo > span, header .life-word,
+        header .market-status-bar, header #market-time {
+            color: #ffffff !important;
         }
-        /* 文字の色は各要素の既存設定を維持 */
-        .up { color: var(--accent-green) !important; }
-        .down { color: var(--accent-red) !important; }
+        header .alpha-badge {
+            background: #171717 !important;
+            color: #ffd27a !important;
+            border-color: #777777 !important;
+        }
+        header .bug-report-link { color: #cccccc !important; }
+        header .life-mark { background: #222222 !important; }
     </style>
 
 
@@ -319,6 +318,9 @@
         canvas { font-family: "Noto Sans JP", "Noto Sans CJK JP", sans-serif !important; }
     </style>
 
+
+
+
 </head>
 <body>
 
@@ -327,7 +329,7 @@
   <span>
     株シミュレーター<span class="life-word">LIFE-Online</span>
   </span>
-  <span class="alpha-badge">α版</span>
+  <span class="alpha-badge" aria-label="α版">α版</span>
   <a
     href="https://forms.gle/nzRGMY1887UdWCqi7"
     target="_blank"
@@ -340,6 +342,8 @@
             <span id="market-status" class="status-badge status-closed">確認中...</span>
         </div>
     </header>
+
+
     <div class="container">
         <div id="page-dashboard" class="page active">
             <div class="portfolio-summary">
@@ -953,7 +957,7 @@
             if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
         }
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') closeLifeAnnouncementDetail();
+            if (event.key === 'Escape') { closeLifeAnnouncementDetail(); }
         });
 
         function navigateTo(pageId, element) {
