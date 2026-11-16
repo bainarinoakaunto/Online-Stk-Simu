@@ -151,6 +151,10 @@
         .ranking-controls select{padding:9px 12px;border:1px solid #d2deed;border-radius:8px;background:#fff;color:#20334d}
         .ranking-table-wrap{overflow-x:auto}
         .ranking-table{width:100%;border-collapse:collapse;min-width:620px}
+        /* ランキング読み込みエラー時は、長文を折り返して横スクロールを発生させない */
+        .ranking-table-wrap.ranking-error{overflow-x:hidden}
+        .ranking-table-wrap.ranking-error .ranking-table{width:100%;min-width:0;table-layout:fixed}
+        .ranking-table-wrap.ranking-error .ranking-error-cell{white-space:normal!important;overflow-wrap:anywhere;word-break:normal;text-align:left!important;line-height:1.8;padding:16px 12px}
         .ranking-table th,.ranking-table td{padding:11px 9px;border-bottom:1px solid #e6edf6;text-align:right;white-space:nowrap}
         .ranking-table th:first-child,.ranking-table td:first-child,.ranking-table th:nth-child(2),.ranking-table td:nth-child(2){text-align:left}
         .ranking-me{background:#eef6ff;font-weight:800}
@@ -1637,6 +1641,8 @@
         };
         loadOnlineRanking=async function(){
             const body=document.getElementById('onlineRankingBody');if(!body)return;
+            const tableWrap=body.closest('.ranking-table-wrap');
+            if(tableWrap)tableWrap.classList.remove('ranking-error');
             const period=document.getElementById('rankingPeriod')?.value||'monthly';
             const metric=document.getElementById('rankingMetric')?.value||'assets';
             body.innerHTML='<tr><td colspan="6" style="text-align:center">読み込み中...</td></tr>';
@@ -1652,7 +1658,10 @@
                     const vals=[String(i+1)+'位',displayName, '¥'+Number(x.totalAssets).toLocaleString(),Number(x.profitRate).toFixed(2)+'%',(x.cumulativeProfit>=0?'+':'')+'¥'+Number(x.cumulativeProfit).toLocaleString(),Number(x.overallScore).toFixed(2)];
                     vals.forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});body.appendChild(tr);
                 });
-            }catch(e){body.innerHTML='<tr><td colspan="6" style="text-align:center">'+escapeHtml(e.message)+'</td></tr>';}
+            }catch(e){
+                if(tableWrap)tableWrap.classList.add('ranking-error');
+                body.innerHTML='<tr><td class="ranking-error-cell" colspan="6">'+escapeHtml(e.message)+'</td></tr>';
+            }
         };
         const originalNavigateTo=navigateTo;
         navigateTo=function(pageId,element){originalNavigateTo(pageId,element);if(pageId==='ranking')loadOnlineRanking();};
