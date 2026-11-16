@@ -721,12 +721,15 @@
         }
 
         function checkMarketOpenStatus(now) {
-            const day = now.getDay();
-            if (day === 0 || day === 6) return { open: false, mode: '閉場中' };
-
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            const timeVal = hours * 100 + minutes;
+            // 日本時間に統一（端末のタイムゾーン設定に左右されない）
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Tokyo', weekday: 'short', hour: '2-digit',
+                minute: '2-digit', hourCycle: 'h23'
+            }).formatToParts(now);
+            const part = key => parts.find(x => x.type === key)?.value || '';
+            const weekday = part('weekday');
+            if (weekday === 'Sat' || weekday === 'Sun') return { open: false, mode: '閉場中' };
+            const timeVal = Number(part('hour')) * 100 + Number(part('minute'));
 
             const isMorningSession = (timeVal >= 900 && timeVal < 1130);
             const isAfternoonSession = (timeVal >= 1230 && timeVal < 1500);
@@ -828,6 +831,11 @@
         }
 
         function renderDashboard() {
+            if(!state || typeof state !== 'object') state={cash:LIFE_INITIAL_CASH,portfolio:{},history:[],stocks:[],usedCoupons:[]};
+            if(!state.portfolio || typeof state.portfolio !== 'object') state.portfolio={};
+            if(!Array.isArray(state.stocks)) state.stocks=[];
+            if(!Array.isArray(state.history)) state.history=[];
+            if(!Array.isArray(newsList)) newsList=[];
             let totalStockVal = 0;
             const tbody = document.getElementById('portfolio-table-body');
             tbody.innerHTML = '';
@@ -913,8 +921,9 @@
 
         function renderMarketGrid(filter = 'all') {
             const grid = document.getElementById('market-grid');
+            if(!grid)return;
             grid.innerHTML = '';
-            let list = [...state.stocks];
+            let list = Array.isArray(state.stocks) ? [...state.stocks] : [];
             if(filter === 'gainers') list.sort((a,b) => (b.price - b.previousPrice)/b.previousPrice - (a.price - a.previousPrice)/a.previousPrice);
             else if(filter === 'losers') list.sort((a,b) => (a.price - a.previousPrice)/a.previousPrice - (b.price - b.previousPrice)/b.previousPrice);
 
@@ -979,10 +988,26 @@
         }
 
         function renderChart(stock) {
-            const ctx = document.getElementById('stockChart').getContext('2d');
-            if (mainChart) mainChart.destroy();
+            const canvas = document.getElementById('stockChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (mainChart) { mainChart.destroy(); mainChart = null; }
+            const history = Array.isArray(stock.ohlcHistory) ? stock.ohlcHistory : [];
+            if (!window.Chart || history.length === 0) {
+                const parent = canvas.parentElement;
+                if (parent) {
+                    let note = parent.querySelector('.chart-fallback-note');
+                    if (!note) { note = document.createElement('p'); note.className = 'chart-fallback-note'; parent.appendChild(note); }
+                    note.textContent = 'チャートデータを準備しています。しばらくしてから再読み込みしてください。';
+                }
+                return;
+            }
+            const fallbackNote = canvas.parentElement?.querySelector('.chart-fallback-note');
+            if (fallbackNote) fallbackNote.remove();
 
-            if (currentChartType === 'candlestick') {
+            let hasCandlestick = false;
+            try { window.Chart.registry.getController('candlestick'); hasCandlestick = true; } catch (e) { hasCandlestick = false; }
+            if (currentChartType === 'candlestick' && hasCandlestick) {
                 mainChart = new Chart(ctx, {
                     type: 'candlestick',
                     data: {
@@ -1003,10 +1028,10 @@
                 mainChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: stock.ohlcHistory.map(d => luxon.DateTime.fromMillis(d.x).toFormat('HH:mm:ss')),
+                        labels: history.map(d => (window.luxon?.DateTime ? luxon.DateTime.fromMillis(d.x).toFormat('HH:mm:ss') : new Date(d.x).toLocaleTimeString('ja-JP'))),
                         datasets: [{
                             label: stock.name,
-                            data: stock.ohlcHistory.map(d => d.c),
+                            data: history.map(d => Number(d.c ?? d.close ?? stock.price)),
                             borderColor: '#2962ff',
                             tension: 0.1,
                             fill: false
@@ -1372,7 +1397,7 @@
                 const script=document.createElement('script');
                 const timeout=setTimeout(()=>{cleanup();reject(new Error('サーバー応答がタイムアウトしました。'));},15000);
                 function cleanup(){clearTimeout(timeout);try{delete window[callback]}catch(e){}script.remove();}
-                window[callback]=(result)=>{cleanup();if(result&&result.ok)resolve(result);else reject(new Error(result&&result.error?result.error:'サーバー処理に失敗しました。'));};
+                window[callback]=(result)=>{cleanup();if(result&&result.ok===true)resolve(result);else reject(new Error(result&&result.error?String(result.error):'サーバー処理に失敗しました。'));};
                 const query=new URLSearchParams({action,callback,...Object.fromEntries(Object.entries(params).map(([k,v])=>[k,typeof v==='string'?v:JSON.stringify(v)]))});
                 script.onerror=()=>{cleanup();reject(new Error('GAS APIに接続できません。公開設定とURLを確認してください。'));};
                 const endpoint=new URL(LIFE_API_URL);query.forEach((v,k)=>endpoint.searchParams.set(k,v));script.src=endpoint.toString();document.head.appendChild(script);
@@ -1403,29 +1428,102 @@
                 alert('登録が完了しました。利用者ID：'+profile.playerId+'\nIDは復旧用に保存してください。');
             }catch(e){lifeSetStatus(e.message);if(btn)btn.disabled=false;}
         }
+        function normalizeOnlineSnapshot(snapshot){
+            if(!snapshot || typeof snapshot !== 'object') throw new Error('サーバーからのデータ形式が正しくありません。');
+            const stocks = Array.isArray(snapshot.stocks) ? snapshot.stocks : [];
+            const portfolio = snapshot.portfolio && typeof snapshot.portfolio === 'object' && !Array.isArray(snapshot.portfolio) ? snapshot.portfolio : {};
+            const history = Array.isArray(snapshot.history) ? snapshot.history : [];
+            const news = Array.isArray(snapshot.news) ? snapshot.news : [];
+            return {
+                cash: Number.isFinite(Number(snapshot.cash)) ? Number(snapshot.cash) : LIFE_INITIAL_CASH,
+                portfolio, history,
+                stocks: stocks.map(s => ({
+                    ...s,
+                    code: String(s.code || ''),
+                    name: String(s.name || '名称未設定'),
+                    sector: String(s.sector || 'その他'),
+                    price: Number(s.price || 0),
+                    previousPrice: Number(s.previousPrice ?? s.price ?? 0),
+                    marketSupply: Number(s.marketSupply ?? s.supply ?? 0),
+                    per: Number(s.per || 0), div: Number(s.div || 0),
+                    founded: Number(s.founded || 0),
+                    benefit: String(s.benefit || ''),
+                    desc: String(s.desc || s.description || ''),
+                    ohlcHistory: Array.isArray(s.ohlcHistory) ? s.ohlcHistory : []
+                })),
+                news
+            };
+        }
         function applyOnlineSnapshot(snapshot){
-            if(!snapshot)return;
-            state.cash=Number(snapshot.cash||LIFE_INITIAL_CASH);
-            state.portfolio=snapshot.portfolio||{};
-            state.history=snapshot.history||[];
-            state.stocks=snapshot.stocks||[];
-            newsList=snapshot.news||[];
+            const data = normalizeOnlineSnapshot(snapshot);
+            state = {
+                ...state,
+                cash: data.cash,
+                portfolio: data.portfolio,
+                history: data.history,
+                stocks: data.stocks,
+                usedCoupons: Array.isArray(state.usedCoupons) ? state.usedCoupons : []
+            };
+            newsList = data.news;
             saveState();
-            const id=getTradeIdentifier();const el=document.getElementById('tradeIdentifier');if(el)el.textContent=id;
+            const id=getTradeIdentifier();
+            ['tradeIdentifier','welcomeTradeIdentifier'].forEach(key=>{const el=document.getElementById(key);if(el)el.textContent=id;});
         }
         async function refreshOnlineSnapshot(){
-            if(!lifeProfile)return;
-            try{const r=await lifeApi('snapshot',{playerId:lifeProfile.playerId,token:lifeProfile.token});applyOnlineSnapshot(r.snapshot);if(document.getElementById('page-dashboard').classList.contains('active'))renderDashboard();if(document.getElementById('page-market').classList.contains('active'))renderMarketGrid();if(document.getElementById('page-detail').classList.contains('active')&&selectedStockCode)renderDetailView(selectedStockCode);}catch(e){console.warn('LIFE online refresh:',e.message);}
+            if(!lifeProfile)return false;
+            try{
+                const r=await lifeApi('snapshot',{playerId:lifeProfile.playerId,token:lifeProfile.token});
+                if(!r || !r.snapshot) throw new Error('口座データが応答に含まれていません。');
+                // 旧データや未初期化口座でsnapshot.stocksが空でも、市場APIから補完する
+                if(!Array.isArray(r.snapshot.stocks) || r.snapshot.stocks.length===0){
+                    const market=await lifeApi('market');
+                    r.snapshot.stocks=Array.isArray(market.stocks)?market.stocks:[];
+                    if(Array.isArray(market.news))r.snapshot.news=market.news;
+                }
+                applyOnlineSnapshot(r.snapshot);
+                if(document.getElementById('page-dashboard')?.classList.contains('active'))renderDashboard();
+                if(document.getElementById('page-market')?.classList.contains('active'))renderMarketGrid();
+                if(document.getElementById('page-detail')?.classList.contains('active')&&selectedStockCode)renderDetailView(selectedStockCode);
+                lifeSetStatus(state.stocks.length ? 'オンライン接続中・データ同期済み' : '接続済み・銘柄データがありません');
+                return true;
+            }catch(e){
+                console.warn('LIFE online refresh:',e.message);
+                lifeSetStatus('同期できませんでした：'+e.message);
+                return false;
+            }
         }
-        function startLifePolling(){if(lifePollTimer)clearInterval(lifePollTimer);const first=refreshOnlineSnapshot().then(()=>{renderDashboard();renderMarketGrid();});lifePollTimer=setInterval(refreshOnlineSnapshot,15000);return first;}
+        function startLifePolling(){
+            if(lifePollTimer)clearInterval(lifePollTimer);
+            refreshOnlineSnapshot().then(ok=>{
+                if(ok){renderDashboard();renderMarketGrid();renderHistory();}
+            });
+            lifePollTimer=setInterval(refreshOnlineSnapshot,15000);
+        }
         initApp=function(){
             lifeProfile=lifeGetProfile();
+            state={cash:LIFE_INITIAL_CASH,portfolio:{},history:[],stocks:[],usedCoupons:[]};
+            newsList=[];
             runEnvironmentCheck();
-            updateMarketTimeAndStatus();setInterval(updateMarketTimeAndStatus,1000);
-            lifeApi('health').then(()=>lifeSetStatus('サーバーに接続しました')).catch(e=>lifeSetStatus('接続を確認できません: '+e.message));
-            if(!lifeProfile){document.getElementById('playerRegistration').style.display='flex';return;}
+            updateMarketTimeAndStatus();
+            setInterval(updateMarketTimeAndStatus,1000);
+            if(!lifeProfile){
+                document.getElementById('playerRegistration').style.display='flex';
+                // 登録画面を表示している間にも公開市場データを取得しておく
+                lifeApi('market').then(data=>{
+                    state.stocks=Array.isArray(data.stocks)?data.stocks:[];
+                    newsList=Array.isArray(data.news)?data.news:[];
+                    renderDashboard();
+                    renderMarketGrid();
+                    lifeSetStatus(state.stocks.length ? '市場データを読み込みました' : '接続済み・銘柄データがありません');
+                }).catch(e=>{
+                    lifeSetStatus('銘柄情報を取得できません：'+e.message+'（GASの初期設定・再デプロイを確認してください）');
+                    renderDashboard();renderMarketGrid();
+                });
+                return;
+            }
             document.getElementById('playerRegistration').style.display='none';
-            state={cash:LIFE_INITIAL_CASH,portfolio:{},history:[],stocks:[],usedCoupons:[]};startLifePolling();initTradeIdentifier();renderDashboard();renderMarketGrid();
+            initTradeIdentifier();
+            startLifePolling();
         };
         simulateMarketPriceChanges=function(){ /* 株価はGAS側で一括更新。ブラウザ側では変動させない */ };
         executeTrade=async function(type){
@@ -1451,8 +1549,9 @@
                 const r=await lifeApi('rankings',{period,metric,playerId:lifeProfile?.playerId||''});
                 document.getElementById('rankingSeasonLabel').textContent=r.periodLabel||'';
                 body.innerHTML='';
-                if(!r.rows.length){body.innerHTML='<tr><td colspan="6" style="text-align:center">まだランキングデータがありません。</td></tr>';return;}
-                r.rows.forEach((x,i)=>{
+                const rows=Array.isArray(r.rows)?r.rows:[];
+                if(rows.length===0){body.innerHTML='<tr><td colspan="6" style="text-align:center">まだランキングデータがありません。</td></tr>';return;}
+                rows.forEach((x,i)=>{
                     const tr=document.createElement('tr');if(x.playerId===lifeProfile?.playerId)tr.className='ranking-me';
                     const vals=[String(i+1)+'位',x.name, '¥'+Number(x.totalAssets).toLocaleString(),Number(x.profitRate).toFixed(2)+'%',(x.cumulativeProfit>=0?'+':'')+'¥'+Number(x.cumulativeProfit).toLocaleString(),Number(x.overallScore).toFixed(2)];
                     vals.forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});body.appendChild(tr);
@@ -1464,7 +1563,7 @@
         function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
         renderHistory=function(){
             const tbody=document.getElementById('history-table-body');if(!tbody)return;tbody.innerHTML='';
-            if(!state.history?.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-sub)">取引履歴はありません</td></tr>';return;}
+            if(!Array.isArray(state.history) || state.history.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-sub)">取引履歴はありません</td></tr>';return;}
             state.history.forEach(h=>{const tr=document.createElement('tr');[h.time||'',h.type||'',h.name||'',Number(h.shares||0).toLocaleString(),'¥'+Number(h.price||0).toLocaleString(),'¥'+Number(h.total||0).toLocaleString()].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});tbody.appendChild(tr);});
         };
         // オンライン版ではサーバーが正本。旧ローカル専用機能による不整合を防止する。
