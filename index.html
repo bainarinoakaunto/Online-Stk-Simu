@@ -20,7 +20,7 @@
         .status-night { background-color: rgba(41, 98, 255, 0.2); color: #64b5f6; }
         .status-closed { background-color: rgba(255, 61, 0, 0.2); color: var(--accent-red); }
         nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-        .nav-btn { background: none; border: none; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; cursor: pointer; width: 16.6667%; transition: color 0.2s; }
+        .nav-btn { background: none; border: none; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; cursor: pointer; width: auto; flex: 1 1 0; min-width: 0; transition: color 0.2s; }
         .nav-btn.active { color: var(--primary-blue); font-weight: bold; }
         .nav-btn span { font-size: 1.2rem; margin-bottom: 2px; }
         .container { max-width: 1200px; width: 100%; margin: 0 auto; padding: 20px 15px; flex: 1; }
@@ -370,6 +370,21 @@
         .life-legal-close{position:absolute;right:15px;top:14px;width:36px;height:36px;border:1px solid #3a4659;border-radius:8px;background:#252e3d;color:#fff;font-size:25px;line-height:1;cursor:pointer}
         @media(max-width:600px){.life-legal-modal{padding:8px}.life-legal-dialog{margin:10px auto;padding:22px 17px 25px}.life-legal-dialog h2{font-size:19px}.life-legal-dialog p,.life-legal-dialog li{font-size:13px}}
     </style>
+
+<style id="life-settings-style">
+.life-settings-overlay{display:none;position:fixed;inset:0;z-index:110000;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);padding:16px;align-items:center;justify-content:center}
+.life-settings-overlay.is-open{display:flex}
+.life-settings-window{position:relative;width:min(560px,100%);max-height:min(82vh,760px);overflow-y:auto;background:#151922;color:#f0f4f8;border:1px solid #354158;border-radius:18px;padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.48)}
+.life-settings-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.life-settings-head h2{font-size:1.3rem}.life-settings-close{background:#252d3d;color:#fff;border:0;border-radius:9px;width:38px;height:38px;font-size:1.35rem;cursor:pointer}
+.life-settings-group{border:1px solid #30394b;border-radius:12px;padding:15px;margin:12px 0;background:#1b202c}
+.life-settings-group h3{font-size:.98rem;margin-bottom:10px;color:#9fc3ff}
+.life-settings-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #30394b;font-size:.88rem}.life-settings-row:last-child{border-bottom:0}
+.life-settings-value{color:#aebbd0;text-align:right;overflow-wrap:anywhere}.life-settings-action{display:block;width:100%;padding:11px 13px;margin-top:9px;border:1px solid #3c5275;border-radius:9px;background:#202d42;color:#eaf2ff;text-align:left;cursor:pointer;font-size:.9rem}
+.life-settings-action:hover{background:#293b58}.life-settings-danger{border-color:#78434a;background:#352329;color:#ffdce0}.life-settings-note{font-size:.78rem;color:#9eacc1;line-height:1.65;margin-top:9px}
+@media(max-width:600px){.life-settings-overlay{padding:8px}.life-settings-window{padding:18px 15px;max-height:88vh}.life-settings-row{align-items:flex-start}}
+</style>
+
 </head>
 <body>
 
@@ -650,6 +665,7 @@
         <button class="nav-btn" onclick="navigateTo('learn', this)"><span>🎓</span>学習</button>
         <button class="nav-btn" type="button" onclick="lifeOpenLegal('terms')"><span>📄</span>利用規約</button>
         <button class="nav-btn" type="button" onclick="lifeOpenLegal('privacy')"><span>🔒</span>プライバシー</button>
+        <button class="nav-btn" type="button" onclick="lifeOpenSettings()"><span>⚙️</span>設定</button>
     </nav>
 
     <div id="env-modal" class="modal-overlay" style="display: none;">
@@ -1950,6 +1966,57 @@
     </script>
 
 
+
+<div id="life-settings-modal" class="life-settings-overlay" aria-hidden="true" onclick="if(event.target===this)lifeCloseSettings()">
+ <section class="life-settings-window" role="dialog" aria-modal="true" aria-labelledby="life-settings-title">
+  <div class="life-settings-head"><h2 id="life-settings-title">⚙️ 設定</h2><button class="life-settings-close" type="button" onclick="lifeCloseSettings()" aria-label="閉じる">×</button></div>
+  <div class="life-settings-group"><h3>👤 アカウント・年齢確認</h3>
+   <div class="life-settings-row"><span>利用者名</span><span class="life-settings-value" id="life-settings-name">未登録</span></div>
+   <div class="life-settings-row"><span>年齢区分</span><span class="life-settings-value" id="life-settings-age">未確認</span></div>
+   <div class="life-settings-row"><span>法定代理人の同意</span><span class="life-settings-value" id="life-settings-guardian">未確認</span></div>
+   <div class="life-settings-row"><span>利用規約への同意</span><span class="life-settings-value" id="life-settings-terms">未確認</span></div>
+   <div class="life-settings-row"><span>プライバシーポリシーへの同意</span><span class="life-settings-value" id="life-settings-privacy">未確認</span></div>
+   <div class="life-settings-row"><span>同意日時</span><span class="life-settings-value" id="life-settings-date">—</span></div>
+   <p class="life-settings-note">同意状況はこの端末のブラウザに保存された情報を表示しています。</p>
+  </div>
+  <div class="life-settings-group"><h3>📄 規約・個人情報</h3>
+   <button class="life-settings-action" type="button" onclick="lifeCloseSettings();lifeOpenLegal('terms')">利用規約を確認する　›</button>
+   <button class="life-settings-action" type="button" onclick="lifeCloseSettings();lifeOpenLegal('privacy')">プライバシーポリシーを確認する　›</button>
+   <button class="life-settings-action" type="button" onclick="lifeReconfirmConsent()">同意内容を再確認する　›</button>
+   <p class="life-settings-note">同意内容の再確認を選ぶと、この端末のログイン情報が消去され、次回起動時に登録・同意確認が必要になります。サーバー上のアカウント情報や記録が削除される操作ではありません。</p>
+  </div>
+  <div class="life-settings-group"><h3>ℹ️ サービス情報</h3>
+   <div class="life-settings-row"><span>サービス名</span><span class="life-settings-value">株シミュレーターLIFEオンライン</span></div>
+   <div class="life-settings-row"><span>バージョン</span><span class="life-settings-value">α版</span></div>
+  </div>
+ </section>
+</div>
+
+
+<script>
+(function(){
+ window.lifeOpenSettings=function(){
+  const p=typeof lifeGetProfile==='function'?lifeGetProfile():null;
+  const valid=typeof lifeHasValidConsent==='function'&&lifeHasValidConsent(p);
+  const set=(id,value)=>{const e=document.getElementById(id);if(e)e.textContent=value;};
+  set('life-settings-name',p&&p.name?p.name:'未登録');
+  set('life-settings-age',p&&p.ageCategory==='adult'?'18歳以上':p&&p.ageCategory==='minor'?'13歳以上18歳未満':'未確認');
+  set('life-settings-guardian',p&&p.ageCategory==='adult'?'対象外（18歳以上）':p&&p.guardianConsentConfirmed===true?'同意確認済み':'未確認');
+  set('life-settings-terms',p&&p.termsAccepted===true?'同意済み':'未同意');
+  set('life-settings-privacy',p&&p.privacyAccepted===true?'同意済み':'未同意');
+  set('life-settings-date',p&&p.consentAt?new Date(p.consentAt).toLocaleString('ja-JP'):'—');
+  const modal=document.getElementById('life-settings-modal');modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+ };
+ window.lifeCloseSettings=function(){const m=document.getElementById('life-settings-modal');m.classList.remove('is-open');m.setAttribute('aria-hidden','true');document.body.style.overflow='';};
+ window.lifeReconfirmConsent=function(){
+  if(!confirm('この端末のログイン情報を消去し、次回起動時に年齢・同意確認をやり直します。サーバー上のアカウントや取引記録は削除されません。続行しますか？'))return;
+  try{localStorage.removeItem('life_online_profile_v1');}catch(e){alert('端末内の情報を消去できませんでした。');return;}
+  location.reload();
+ };
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')lifeCloseSettings();});
+})();
+</script>
+
     <!-- 利用規約・プライバシーポリシー表示用 -->
     <div id="life-legal-modal" class="life-legal-modal" aria-hidden="true">
         <section class="life-legal-dialog" role="dialog" aria-modal="true" aria-labelledby="life-legal-title">
@@ -1990,7 +2057,7 @@
                 <p>3. 暴言、侮辱、差別的表現、脅迫、わいせつ・過度に下品な表現、嫌がらせを目的とする表現、宣伝・広告、他人や運営者になりすます名称、第三者の権利を侵害する名称その他運営者が不適切と判断する利用者名は禁止します。</p>
                 <p>4. 表示名はランキング等に表示される場合があります。氏名、住所、電話番号、学校名、メールアドレス、SNSアカウントその他の個人を特定できる情報を表示名に含めないでください。</p>
                 <p>5. 不適切な利用者名が確認された場合、運営者は、事前の通知なく、表示名の変更要請または変更、ランキング等での非表示、機能制限、アカウントの一時停止、登録抹消その他必要と判断する措置を講じることがあります。悪質性、繰り返しの違反、他の利用者への影響等を考慮して対応を決定します。</p>
-                <p>6. 利用者は、自身の利用者ID、認証情報および復旧用ファイルを適切に管理してください。これらを第三者に公開・共有したことによって生じた問題について、運営者は、責任を負いません。</p>
+                <p>6. 利用者は、自身の利用者ID、認証情報および復旧用ファイルを適切に管理してください。これらを第三者に公開・共有したことによって生じた問題について、運営者は法令上認められる範囲で責任を負いません。</p>
 
                 <h3>第5条（利用者データと復旧用ファイル）</h3>
                 <p>1. 本サービスでは、オンライン機能の提供のため、利用者ID、認証に必要な情報、表示名、仮想資産、保有銘柄、取引履歴その他のデータをサーバー側で保存・処理します。</p>
@@ -2001,7 +2068,7 @@
                 <h3>第6条（取引機能・利用回数の制限）</h3>
                 <p>1. 仮想株式の売買操作は、サーバー負荷の抑制および公平な利用環境の維持のため、1利用者につき5分間に最大30回までに制限されます。市場データの自動同期は、この取引操作回数には含まれません。</p>
                 <p>2. 取引可能時間や株価の更新条件は、サービス画面に表示される案内に従います。メンテナンス、障害、休日、外部サービスの状況等により、通常と異なる場合があります。</p>
-                <p>3. 制限を回避する目的で複数の利用者IDを作成・使用する行為、プログラム等によって取引を自動化する行為、システムや、サーバーに過度な負荷をかける行為は禁止します。</p>
+                <p>3. 制限を回避する目的で複数の利用者IDを作成・使用する行為、プログラム等によって取引を自動化する行為、サーバーに過度な負荷をかける行為は禁止します。</p>
 
                 <h3>第7条（ランキング・公開表示）</h3>
                 <p>1. ランキング機能では、利用者の表示名、総資産額、利益率、累計利益、スコア等の情報が他の利用者に表示される場合があります。</p>
