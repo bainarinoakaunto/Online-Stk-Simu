@@ -1982,8 +1982,8 @@
   <div class="life-settings-group"><h3>📄 規約・個人情報</h3>
    <button class="life-settings-action" type="button" onclick="lifeCloseSettings();lifeOpenLegal('terms')">利用規約を確認する　›</button>
    <button class="life-settings-action" type="button" onclick="lifeCloseSettings();lifeOpenLegal('privacy')">プライバシーポリシーを確認する　›</button>
-   <button class="life-settings-action" type="button" onclick="lifeReconfirmConsent()">同意内容を再確認する　›</button>
-   <p class="life-settings-note">同意内容の再確認を選ぶと、この端末のログイン情報が消去され、次回起動時に登録・同意確認が必要になります。サーバー上のアカウント情報や記録が削除される操作ではありません。</p>
+   <button class="life-settings-action" type="button" onclick="lifeShowConsentDetails()">同意内容を確認する　›</button>
+   <p class="life-settings-note">ここでは現在の同意状況を確認できます。確認してもログイン情報・同意情報・取引記録は変更または削除されません。</p>
   </div>
   <div class="life-settings-group"><h3>ℹ️ サービス情報</h3>
    <div class="life-settings-row"><span>サービス名</span><span class="life-settings-value">株シミュレーターLIFEオンライン</span></div>
@@ -2008,10 +2008,15 @@
   const modal=document.getElementById('life-settings-modal');modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
  };
  window.lifeCloseSettings=function(){const m=document.getElementById('life-settings-modal');m.classList.remove('is-open');m.setAttribute('aria-hidden','true');document.body.style.overflow='';};
- window.lifeReconfirmConsent=function(){
-  if(!confirm('この端末のログイン情報を消去し、次回起動時に年齢・同意確認をやり直します。サーバー上のアカウントや取引記録は削除されません。続行しますか？'))return;
-  try{localStorage.removeItem('life_online_profile_v1');}catch(e){alert('端末内の情報を消去できませんでした。');return;}
-  location.reload();
+ window.lifeShowConsentDetails=function(){
+  const p=typeof lifeGetProfile==='function'?lifeGetProfile():null;
+  if(!p){alert('利用者情報が見つかりません。登録画面で確認してください。');return;}
+  const age=p.ageCategory==='adult'?'18歳以上':p.ageCategory==='minor'?'13歳以上18歳未満':'未確認';
+  const guardian=p.ageCategory==='adult'?'対象外（18歳以上）':p.guardianConsentConfirmed===true?'同意確認済み':'未確認';
+  const terms=p.termsAccepted===true?'同意済み':'未同意';
+  const privacy=p.privacyAccepted===true?'同意済み':'未同意';
+  const date=p.consentAt?new Date(p.consentAt).toLocaleString('ja-JP'):'記録なし';
+  alert('【現在の確認内容】\n年齢区分：'+age+'\n法定代理人の同意：'+guardian+'\n利用規約：'+terms+'\nプライバシーポリシー：'+privacy+'\n確認日時：'+date+'\n\nこの確認によって、ログイン情報・同意情報・取引記録が変更または削除されることはありません。');
  };
  document.addEventListener('keydown',e=>{if(e.key==='Escape')lifeCloseSettings();});
 })();
