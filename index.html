@@ -138,18 +138,48 @@
         @media(max-width:600px){.identifier-welcome-card{padding:22px}.identifier-big code{font-size:1.05rem}.identifier-welcome-actions{grid-template-columns:1fr}}
 
         /* オンライン利用者登録 */
-        #playerRegistration{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(20,42,70,.62);backdrop-filter:blur(5px)}
-        .player-register-card{width:min(480px,100%);padding:28px;border:1px solid #dce6f2;border-radius:18px;background:#fff;color:#20334d;box-shadow:0 22px 70px rgba(20,50,90,.25)}
+        #playerRegistration{position:fixed;inset:0;z-index:9000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:18px;background:rgba(20,42,70,.62);backdrop-filter:blur(5px)}
+        .player-register-card{width:min(480px,100%);max-height:calc(100vh - 36px);overflow-y:auto;margin:auto;padding:28px;border:1px solid #dce6f2;border-radius:18px;background:#fff;color:#20334d;box-shadow:0 22px 70px rgba(20,50,90,.25)}
         .player-register-card h2{font-size:1.4rem;color:#174d8d;margin-bottom:8px}
         .player-register-card p{font-size:.88rem;color:#6d7e93;line-height:1.65;margin-bottom:16px}
         .player-register-card label{display:block;font-size:.84rem;font-weight:700;margin:12px 0 5px}
         .player-register-card input{width:100%;padding:12px;border:1px solid #d2deed;border-radius:9px;font-size:1rem}
         .player-register-card button{width:100%;border:0;border-radius:9px;padding:13px;background:#1976e8;color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;margin-top:14px}
         .player-register-card button:disabled{opacity:.55;cursor:wait}
+        .life-legal-check-links{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}
+        .player-register-card .life-legal-check-links button{margin:0;padding:10px 8px;background:#eef5ff;color:#17569b;border:1px solid #c9dcf5;font-size:.82rem}
+        @media(max-width:420px){.life-legal-check-links{grid-template-columns:1fr}}
         .life-age-confirm{display:flex!important;align-items:flex-start;gap:9px;margin:16px 0 6px!important;font-size:.82rem!important;line-height:1.55}
         .life-age-confirm input{width:18px;height:18px;flex:0 0 18px;margin:1px 0 0;accent-color:#1976e8}
         .player-register-card .life-age-note{font-size:.76rem;color:#a33b32;margin:4px 0 10px}
         #onlineStatus{font-size:.8rem;color:#6d7e93;margin-top:9px;min-height:20px}
+
+        /* 法定代理人同意 専用画面 */
+        #lifeGuardianScreen{position:fixed;inset:0;z-index:12000;display:none;overflow-y:auto;overscroll-behavior:contain;background:#f3f7fc;padding:clamp(12px,3vw,32px)}
+        .life-guardian-screen-card{width:min(760px,100%);min-height:min(680px,calc(100vh - 24px));margin:0 auto;background:#fff;color:#20334d;border:1px solid #dce6f2;border-radius:20px;padding:clamp(20px,4vw,38px);box-shadow:0 18px 55px rgba(20,50,90,.16);display:flex;flex-direction:column}
+        .life-guardian-screen-kicker{font-size:.72rem;letter-spacing:.16em;font-weight:900;color:#1976e8;margin-bottom:10px}
+        .life-guardian-screen-card h2{font-size:clamp(1.35rem,4vw,1.9rem);line-height:1.35;color:#174d8d;margin-bottom:12px}
+        .life-guardian-screen-lead{font-size:.96rem;line-height:1.8;color:#52657d;margin-bottom:22px}
+        .life-guardian-screen-section{padding:20px;border:1px solid #dce8f6;border-radius:14px;background:#f6f9fe}
+        .life-guardian-screen-section h3{font-size:1.05rem;margin-bottom:8px;color:#174d8d}
+        .life-guardian-screen-section p,.life-guardian-screen-section li{font-size:.9rem;line-height:1.8;color:#43566e}
+        .life-guardian-screen-section ul{padding-left:1.3em;margin-top:8px}
+        .life-guardian-screen-links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+        .life-guardian-screen-links button{border:1px solid #c9dcf5;border-radius:9px;background:#eaf3ff;color:#17569b;padding:12px;font-weight:800;cursor:pointer}
+        .life-guardian-screen-check{display:flex;align-items:flex-start;gap:12px;margin:22px 0 8px;padding:16px;border:1px solid #c9dcf5;border-radius:12px;background:#f8fbff;font-size:.9rem;font-weight:700;line-height:1.75}
+        .life-guardian-screen-check input{width:21px;height:21px;flex:0 0 21px;margin:2px 0 0;accent-color:#1976e8}
+        .life-guardian-screen-note{font-size:.78rem;line-height:1.7;color:#9a5148;margin-bottom:16px}
+        .life-guardian-screen-actions{display:grid;grid-template-columns:minmax(100px,.7fr) 1.5fr;gap:10px;margin-top:auto;padding-top:10px}
+        .life-guardian-screen-actions button{border:0;border-radius:10px;padding:14px 12px;font-weight:800;font-size:.9rem;cursor:pointer}
+        .life-guardian-back{background:#edf1f6;color:#42536a}
+        .life-guardian-accept{background:#1976e8;color:#fff}
+        .life-guardian-accept:disabled{opacity:.42;cursor:not-allowed}
+        .life-guardian-entry{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:13px;border:1px solid #c9dcf5;border-radius:10px;background:#f6f9fe;margin:14px 0}
+        .life-guardian-entry-text{display:flex;flex-direction:column;gap:4px;font-size:.82rem;line-height:1.55;color:#52657d}
+        .life-guardian-entry-text strong{color:#174d8d;font-size:.9rem}
+        .player-register-card .life-guardian-entry button{width:auto;margin:0;padding:11px 14px;white-space:normal;background:#1976e8;color:#fff;font-size:.82rem}
+        @media(max-width:520px){.life-guardian-screen-links{grid-template-columns:1fr}.life-guardian-screen-actions{grid-template-columns:1fr}.life-guardian-entry{grid-template-columns:1fr}.player-register-card .life-guardian-entry button{width:100%}.life-guardian-screen-card{min-height:calc(100vh - 24px)}}
+
         .ranking-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
         .ranking-controls select{padding:9px 12px;border:1px solid #d2deed;border-radius:8px;background:#fff;color:#20334d}
         .ranking-table-wrap{overflow-x:auto}
@@ -512,12 +542,53 @@
             <p>オンライン市場に参加するため、最初に利用者名を登録してください。利用者IDは自動発行され、このブラウザに保存されます。</p>
             <label for="playerNameInput">利用者名</label>
             <input id="playerNameInput" type="text" maxlength="16" autocomplete="nickname" placeholder="表示名" />
-            <label class="life-age-confirm"><input id="lifeAgeConfirm" type="checkbox" /> 私は13歳以上です。また、18歳未満の場合は、保護者の同意を得ています。</label>
-            <p class="life-age-note">13歳未満の方は登録・利用できません。確認できない場合は登録を中止してください。</p>
-            <button id="playerRegisterButton" type="button" onclick="registerOnlinePlayer()">同意して登録する</button>
+            <p class="life-age-note">不適切な利用者名（暴言・差別表現・他人へのなりすまし・個人情報など）は禁止です。違反時は、名前の変更、ランキング非表示、アカウント停止・登録抹消等の措置を行う場合があります。</p>
+            <div class="life-legal-check-links">
+                <button type="button" onclick="lifeOpenLegal('terms')">📄 利用規約を確認する</button>
+                <button type="button" onclick="lifeOpenLegal('privacy')">🔒 プライバシーポリシーを確認する</button>
+            </div>
+            <label class="life-age-confirm"><input id="lifeAgeConfirm" type="checkbox" /> 私は登録時点で満13歳以上です。</label>
+            <input id="lifeGuardianConfirm" type="checkbox" hidden />
+            <div class="life-guardian-entry">
+                <div class="life-guardian-entry-text"><strong>18歳未満の方</strong><span id="lifeGuardianEntryStatus">法定代理人（親権者または未成年後見人）の同意確認が必要です。</span></div>
+                <button type="button" onclick="lifeOpenGuardianScreen()">法定代理人の同意を確認する</button>
+            </div>
+            <label class="life-age-confirm"><input id="lifeTermsConfirm" type="checkbox" /> 利用規約を読み、内容に同意します。</label>
+            <label class="life-age-confirm"><input id="lifePrivacyConfirm" type="checkbox" /> プライバシーポリシーを読み、情報の取り扱いに同意します。</label>
+            <p class="life-age-note">13歳未満の方は、保護者の同意があっても登録・利用できません。各項目を確認できない場合、登録はできません。</p>
+            <button id="playerRegisterButton" type="button" onclick="registerOnlinePlayer()">確認して登録する</button>
             <div id="onlineStatus">氏名・住所・学校名などの個人情報は入力しないでください。</div>
         </div>
     </div>
+
+    <!-- 法定代理人同意 専用画面 -->
+    <section id="lifeGuardianScreen" role="dialog" aria-modal="true" aria-labelledby="lifeGuardianScreenTitle">
+        <div class="life-guardian-screen-card">
+            <div class="life-guardian-screen-kicker">GUARDIAN CONSENT</div>
+            <h2 id="lifeGuardianScreenTitle">法定代理人の同意確認</h2>
+            <p class="life-guardian-screen-lead">18歳未満の方は、登録を始める前に、親権者または未成年後見人などの法定代理人にこの画面を見せてください。</p>
+            <div class="life-guardian-screen-section">
+                <h3>法定代理人の方へ</h3>
+                <p>株シミュレーターLIFEオンラインの利用について、次の内容をご確認ください。</p>
+                <ul>
+                    <li>本サービスは、架空の銘柄を使った株式取引シミュレーションです。</li>
+                    <li>利用規約およびプライバシーポリシーに、利用条件や情報の取り扱いが記載されています。</li>
+                    <li>利用者が13歳未満の場合は、同意の有無にかかわらず登録・利用できません。</li>
+                    <li>18歳未満の利用者は、法定代理人の同意を得てから利用を開始する必要があります。</li>
+                </ul>
+                <div class="life-guardian-screen-links">
+                    <button type="button" onclick="lifeOpenLegal('terms')">📄 利用規約を読む</button>
+                    <button type="button" onclick="lifeOpenLegal('privacy')">🔒 プライバシーポリシーを読む</button>
+                </div>
+            </div>
+            <label class="life-guardian-screen-check"><input id="lifeGuardianScreenCheck" type="checkbox" onchange="lifeGuardianScreenCheckChanged()" /> <span>私は法定代理人本人です。上記の説明と利用規約・プライバシーポリシーを確認し、18歳未満の利用者が本サービスを利用することに同意します。</span></label>
+            <p class="life-guardian-screen-note">※法定代理人ご本人が内容を確認し、ご自身でチェックしてください。同意しない場合は登録を進めないでください。</p>
+            <div class="life-guardian-screen-actions">
+                <button type="button" class="life-guardian-back" onclick="lifeCloseGuardianScreen()">戻る</button>
+                <button type="button" id="lifeGuardianScreenAccept" class="life-guardian-accept" disabled onclick="lifeConfirmGuardianConsent()">同意を確認して登録画面へ戻る</button>
+            </div>
+        </div>
+    </section>
 
     <!-- 初回 識別子案内 -->
     <div id="identifierWelcome" role="dialog" aria-modal="true" aria-label="識別子の保存案内">
@@ -1534,6 +1605,8 @@
         ========================================================= */
         const LIFE_API_URL = 'https://script.google.com/macros/s/AKfycbzsv7QpCe4t1RF70xP0wtsqZVNgT3UUIp5DJptalhjxwd-V8qoJMXGyioa79b3blZ1a/exec';
         const LIFE_PROFILE_KEY = 'life_online_profile_v1';
+        const LIFE_TERMS_VERSION = '2026-11-17-3';
+        const LIFE_PRIVACY_VERSION = '2026-11-17-2';
         const LIFE_INITIAL_CASH = 1000000;
         let lifeProfile = null;
         let lifePollTimer = null;
@@ -1551,7 +1624,18 @@
         function lifeGetProfile(){
             try{return JSON.parse(localStorage.getItem(LIFE_PROFILE_KEY)||'null')}catch(e){return null}
         }
-        function lifeSaveProfile(p){lifeProfile=p;localStorage.setItem(LIFE_PROFILE_KEY,JSON.stringify(p));}
+        function lifeHasValidConsent(p){
+            return !!(p && p.ageConfirmed === true && p.guardianConsentConfirmed === true &&
+                p.termsAccepted === true && p.privacyAccepted === true &&
+                p.termsVersion === LIFE_TERMS_VERSION && p.privacyVersion === LIFE_PRIVACY_VERSION &&
+                typeof p.consentAt === 'string' && p.consentAt.length > 0);
+        }
+        function lifeSaveProfile(p){
+            const serialized=JSON.stringify(p);
+            localStorage.setItem(LIFE_PROFILE_KEY,serialized);
+            if(localStorage.getItem(LIFE_PROFILE_KEY)!==serialized) throw new Error('同意情報を端末に保存できませんでした。ブラウザの保存設定を確認してください。');
+            lifeProfile=p;
+        }
         function lifeApi(action, params={}){
             return new Promise((resolve,reject)=>{
                 if(!LIFE_API_URL || LIFE_API_URL.includes('PASTE_YOUR')){reject(new Error('GASのウェブアプリURLが設定されていません。index.html内のLIFE_API_URLを設定してください。'));return;}
@@ -1576,21 +1660,67 @@
         function saveIdentifierText(){const id=getTradeIdentifier();const b=new Blob(['株シミュレーターLIFE 利用者ID\n'+id+'\n\nこのIDとブラウザ保存データを大切に保管してください。'],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='LIFE_player_ID.txt';a.click();URL.revokeObjectURL(a.href);}
         function closeIdentifierWelcome(){const e=document.getElementById('identifierWelcome');if(e)e.style.display='none';}
 
+        function lifeOpenGuardianScreen(){
+            const screen=document.getElementById('lifeGuardianScreen');
+            const check=document.getElementById('lifeGuardianScreenCheck');
+            if(check)check.checked=false;
+            lifeGuardianScreenCheckChanged();
+            if(screen){screen.style.display='block';document.body.style.overflow='hidden';screen.scrollTop=0;}
+        }
+        function lifeGuardianScreenCheckChanged(){
+            const checked=document.getElementById('lifeGuardianScreenCheck')?.checked===true;
+            const accept=document.getElementById('lifeGuardianScreenAccept');
+            if(accept)accept.disabled=!checked;
+        }
+        function lifeCloseGuardianScreen(){
+            const screen=document.getElementById('lifeGuardianScreen');
+            if(screen)screen.style.display='none';
+            document.body.style.overflow='';
+        }
+        function lifeConfirmGuardianConsent(){
+            if(document.getElementById('lifeGuardianScreenCheck')?.checked!==true)return;
+            const original=document.getElementById('lifeGuardianConfirm');
+            if(original)original.checked=true;
+            const status=document.getElementById('lifeGuardianEntryStatus');
+            if(status)status.textContent='法定代理人本人による同意確認済み';
+            lifeCloseGuardianScreen();
+        }
+
         async function registerOnlinePlayer(){
             const ageConfirmed=document.getElementById('lifeAgeConfirm')?.checked===true;
-            if(!ageConfirmed){lifeSetStatus('登録するには、13歳以上であることと、18歳未満の場合は保護者の同意を得ていることの確認が必要です。');return;}
+            const guardianConfirmed=document.getElementById('lifeGuardianConfirm')?.checked===true;
+            const termsAccepted=document.getElementById('lifeTermsConfirm')?.checked===true;
+            const privacyAccepted=document.getElementById('lifePrivacyConfirm')?.checked===true;
+            if(!ageConfirmed){lifeSetStatus('13歳以上であることを確認できないため、登録できません。');return;}
+            if(!guardianConfirmed){lifeSetStatus('18歳未満の場合は、親権者または未成年後見人などの法定代理人の同意確認が必要です。');return;}
+            if(!termsAccepted||!privacyAccepted){lifeSetStatus('利用規約とプライバシーポリシーの両方への同意が必要です。');return;}
             const name=(document.getElementById('playerNameInput')?.value||'').trim();
             if(name.length<1||name.length>16){lifeSetStatus('利用者名は1〜16文字で入力してください。');return;}
             const btn=document.getElementById('playerRegisterButton');if(btn)btn.disabled=true;
-            lifeSetStatus('利用者情報を登録しています...');
-            const profile={playerId:lifeNewPlayerId(),token:lifeRandomToken(),name,createdAt:new Date().toISOString()};
+            lifeSetStatus('同意情報を保存しています...');
+            const consentAt=new Date().toISOString();
+            const profile={
+                playerId:lifeNewPlayerId(),token:lifeRandomToken(),name,createdAt:consentAt,
+                ageConfirmed:true,guardianConsentConfirmed:true,
+                termsAccepted:true,privacyAccepted:true,
+                termsVersion:LIFE_TERMS_VERSION,privacyVersion:LIFE_PRIVACY_VERSION,
+                consentAt
+            };
             try{
+                // サーバー登録前に、同意情報を端末へ確実に保存できるか確認する。
+                lifeSaveProfile(profile);
+                lifeSetStatus('利用者情報を登録しています...');
                 const result=await lifeApi('register',{playerId:profile.playerId,token:profile.token,name:profile.name});
-                lifeSaveProfile(profile);document.getElementById('playerRegistration').style.display='none';
+                document.getElementById('playerRegistration').style.display='none';
                 applyOnlineSnapshot(result.snapshot);startLifePolling();initTradeIdentifier();
                 renderDashboard();renderMarketGrid();
-                alert('登録が完了しました。利用者ID：'+profile.playerId+'\nIDは復旧用に保存してください。');
-            }catch(e){lifeSetStatus(e.message);if(btn)btn.disabled=false;}
+                alert('登録が完了しました。利用者ID：'+profile.playerId+'\\nIDは復旧用に保存してください。');
+            }catch(e){
+                lifeProfile=null;
+                try{localStorage.removeItem(LIFE_PROFILE_KEY);}catch(storageError){}
+                lifeSetStatus(e.message||'登録または同意情報の保存に失敗しました。');
+                if(btn)btn.disabled=false;
+            }
         }
         function normalizeOnlineSnapshot(snapshot){
             if(!snapshot || typeof snapshot !== 'object') throw new Error('サーバーからのデータ形式が正しくありません。');
@@ -1690,6 +1820,10 @@
         }
         initApp=function(){
             lifeProfile=lifeGetProfile();
+            if(!lifeHasValidConsent(lifeProfile)){
+                lifeProfile=null;
+                try{localStorage.removeItem(LIFE_PROFILE_KEY);}catch(e){}
+            }
             state={cash:LIFE_INITIAL_CASH,portfolio:{},history:[],stocks:[],usedCoupons:[]};
             newsList=[];
             runEnvironmentCheck();
@@ -1813,15 +1947,17 @@
                 <h3>第3条（利用対象・利用環境）</h3>
                 <p>1. 利用者は、自身が利用する端末、ブラウザおよび通信環境を用意し、自らの責任で本サービスを利用するものとします。</p>
                 <p>2. 本サービスを利用できるのは、利用開始時点で満13歳以上の方に限ります。13歳未満の方は、保護者の同意の有無にかかわらず、登録および利用できません。</p>
-                <p>3. 18歳未満の方は、登録および利用を開始する前に、保護者（親権者または未成年後見人）へ本サービスの内容、本規約およびプライバシーポリシーを説明し、保護者本人の同意を得なければなりません。保護者の同意を得られない場合は利用できません。</p>
-                <p>4. 登録時には、13歳以上であること、および18歳未満の場合は保護者の同意を得ていることを、画面上のチェック欄で確認します。虚偽の確認をしてはなりません。運営者が年齢要件または保護者同意の確認に疑義があると判断した場合、追加確認、利用停止または登録抹消を行うことがあります。</p>
+                <p>3. 18歳未満の方は、登録および利用を開始する前に、法定代理人（親権者または未成年後見人）に本サービスの内容、本規約およびプライバシーポリシーを確認してもらい、利用について同意を得なければなりません。法定代理人の同意を得られない場合は利用できません。</p>
+                <p>4. 登録時には、13歳以上であること、および18歳未満の場合は法定代理人の同意を得ていることを、画面上のチェック欄で確認します。利用者は、法定代理人本人の意思を確認したうえでチェックしてください。虚偽の確認をしてはなりません。運営者が年齢要件または法定代理人の同意の確認に疑義があると判断した場合、追加確認、利用停止または登録抹消を行うことがあります。</p>
                 <p>5. 本サービスは、すべての端末、OS、ブラウザまたは通信環境での動作を保証するものではありません。端末やブラウザの設定、通信状況、外部サービスの仕様変更等により、一部機能が利用できない場合があります。</p>
 
                 <h3>第4条（利用者登録・表示名）</h3>
                 <p>1. 本サービスのオンライン機能を利用する場合、画面の案内に従って利用者登録を行う必要があります。登録時には、第3条に定める年齢および保護者同意の確認が必須です。</p>
                 <p>2. 利用者は、表示名その他の登録情報について、第三者の個人情報、他人になりすます情報、他人に不快感や誤解を与える情報、法令または公序良俗に反する情報を登録してはなりません。</p>
-                <p>3. 表示名はランキング等に表示される場合があります。氏名、住所、電話番号、学校名、メールアドレス、SNSアカウントその他の個人を特定できる情報を表示名に含めないでください。</p>
-                <p>4. 利用者は、自身の利用者ID、認証情報および復旧用ファイルを適切に管理してください。これらを第三者に公開・共有したことによって生じた問題について、運営者は法令上認められる範囲で責任を負いません。</p>
+                <p>3. 暴言、侮辱、差別的表現、脅迫、わいせつ・過度に下品な表現、嫌がらせを目的とする表現、宣伝・広告、他人や運営者になりすます名称、第三者の権利を侵害する名称その他運営者が不適切と判断する利用者名は禁止します。</p>
+                <p>4. 表示名はランキング等に表示される場合があります。氏名、住所、電話番号、学校名、メールアドレス、SNSアカウントその他の個人を特定できる情報を表示名に含めないでください。</p>
+                <p>5. 不適切な利用者名が確認された場合、運営者は、事前の通知なく、表示名の変更要請または変更、ランキング等での非表示、機能制限、アカウントの一時停止、登録抹消その他必要と判断する措置を講じることがあります。悪質性、繰り返しの違反、他の利用者への影響等を考慮して対応を決定します。</p>
+                <p>6. 利用者は、自身の利用者ID、認証情報および復旧用ファイルを適切に管理してください。これらを第三者に公開・共有したことによって生じた問題について、運営者は法令上認められる範囲で責任を負いません。</p>
 
                 <h3>第5条（利用者データと復旧用ファイル）</h3>
                 <p>1. 本サービスでは、オンライン機能の提供のため、利用者ID、認証に必要な情報、表示名、仮想資産、保有銘柄、取引履歴その他のデータをサーバー側で保存・処理します。</p>
@@ -1855,7 +1991,7 @@
                 </ul>
 
                 <h3>第9条（利用の制限・登録情報への対応）</h3>
-                <p>利用者が本規約に違反した場合、または不正利用の疑いがある場合、運営者は事前の通知なく、必要な範囲で機能の制限、ランキング表示の停止、データの修正・削除、利用停止その他の措置を行うことがあります。</p>
+                <p>利用者が本規約に違反した場合、または不正利用の疑いがある場合、運営者は事前の通知なく、必要な範囲で機能の制限、ランキング表示の停止、表示名の変更・非表示、データの修正・削除、アカウントの一時停止、登録抹消その他の措置を行うことがあります。特に不適切な利用者名については、第4条第5項に基づき対応します。</p>
 
                 <h3>第10条（サービス内容の変更・停止・終了）</h3>
                 <p>運営者は、保守、更新、障害対応、セキュリティ対策、外部サービスの仕様変更、運営上の都合その他必要がある場合、本サービスの全部または一部を変更、中断または終了することがあります。緊急の場合を除き、可能な範囲で事前に案内するよう努めますが、事前の告知を保証するものではありません。</p>
@@ -1897,7 +2033,7 @@
                     <li><strong>問い合わせ情報：</strong>利用者が問い合わせ窓口を通じて任意に送信した内容や、対応に必要な情報</li>
                 </ul>
                 <p>本サービスは、利用者に対して、住所、電話番号、学校名、実名、メールアドレス等を表示名として登録することを求めるものではありません。利用者は、表示名や問い合わせ内容に不要な個人情報を含めないでください。</p>
-                <p>登録時には、利用者本人による「13歳以上であること」の確認、および18歳未満の場合の「保護者の同意を得ていること」の確認を求めます。このチェック欄は登録画面での確認に使用し、生年月日や本人確認書類の入力・送信は求めません。</p>
+                <p>登録時には、利用者本人による「13歳以上であること」の確認、および18歳未満の場合の「法定代理人（親権者または未成年後見人）の同意を得ていること」の確認を求めます。このチェック欄は登録画面での確認に使用し、生年月日や本人確認書類の入力・送信は求めません。</p>
 
                 <h3>第3条（情報の取得方法）</h3>
                 <p>1. 利用者登録情報およびシミュレーション情報は、利用者による登録、注文、売買その他の操作に応じて取得・更新されます。</p>
