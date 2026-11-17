@@ -20,7 +20,7 @@
         .status-night { background-color: rgba(41, 98, 255, 0.2); color: #64b5f6; }
         .status-closed { background-color: rgba(255, 61, 0, 0.2); color: var(--accent-red); }
         nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-        .nav-btn { background: none; border: none; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; cursor: pointer; width: 25%; transition: color 0.2s; }
+        .nav-btn { background: none; border: none; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; cursor: pointer; width: 16.6667%; transition: color 0.2s; }
         .nav-btn.active { color: var(--primary-blue); font-weight: bold; }
         .nav-btn span { font-size: 1.2rem; margin-bottom: 2px; }
         .container { max-width: 1200px; width: 100%; margin: 0 auto; padding: 20px 15px; flex: 1; }
@@ -146,6 +146,9 @@
         .player-register-card input{width:100%;padding:12px;border:1px solid #d2deed;border-radius:9px;font-size:1rem}
         .player-register-card button{width:100%;border:0;border-radius:9px;padding:13px;background:#1976e8;color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;margin-top:14px}
         .player-register-card button:disabled{opacity:.55;cursor:wait}
+        .life-age-confirm{display:flex!important;align-items:flex-start;gap:9px;margin:16px 0 6px!important;font-size:.82rem!important;line-height:1.55}
+        .life-age-confirm input{width:18px;height:18px;flex:0 0 18px;margin:1px 0 0;accent-color:#1976e8}
+        .player-register-card .life-age-note{font-size:.76rem;color:#a33b32;margin:4px 0 10px}
         #onlineStatus{font-size:.8rem;color:#6d7e93;margin-top:9px;min-height:20px}
         .ranking-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
         .ranking-controls select{padding:9px 12px;border:1px solid #d2deed;border-radius:8px;background:#fff;color:#20334d}
@@ -321,6 +324,18 @@
 
 
 
+    <style id="life-legal-modal-style">
+
+        .life-legal-modal{display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.82);padding:16px;overflow-y:auto}
+        .life-legal-modal.is-open{display:block}
+        .life-legal-dialog{position:relative;width:min(780px,100%);margin:24px auto;padding:26px 24px 30px;background:#151b26;border:1px solid #303c50;border-radius:14px;color:#e9eef5;line-height:1.85;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+        .life-legal-dialog h2{margin:0 45px 20px 0;color:#67ddbd;font-size:22px}
+        .life-legal-dialog h3{margin:23px 0 7px;color:#8de8d1;font-size:16px}
+        .life-legal-dialog p,.life-legal-dialog li{font-size:14px;color:#d4dce8}
+        .life-legal-dialog ul{padding-left:22px;margin:8px 0}
+        .life-legal-close{position:absolute;right:15px;top:14px;width:36px;height:36px;border:1px solid #3a4659;border-radius:8px;background:#252e3d;color:#fff;font-size:25px;line-height:1;cursor:pointer}
+        @media(max-width:600px){.life-legal-modal{padding:8px}.life-legal-dialog{margin:10px auto;padding:22px 17px 25px}.life-legal-dialog h2{font-size:19px}.life-legal-dialog p,.life-legal-dialog li{font-size:13px}}
+    </style>
 </head>
 <body>
 
@@ -497,7 +512,9 @@
             <p>オンライン市場に参加するため、最初に利用者名を登録してください。利用者IDは自動発行され、このブラウザに保存されます。</p>
             <label for="playerNameInput">利用者名</label>
             <input id="playerNameInput" type="text" maxlength="16" autocomplete="nickname" placeholder="表示名" />
-            <button id="playerRegisterButton" type="button" onclick="registerOnlinePlayer()">登録する</button>
+            <label class="life-age-confirm"><input id="lifeAgeConfirm" type="checkbox" /> 私は13歳以上です。また、18歳未満の場合は、保護者の同意を得ています。</label>
+            <p class="life-age-note">13歳未満の方は登録・利用できません。確認できない場合は登録を中止してください。</p>
+            <button id="playerRegisterButton" type="button" onclick="registerOnlinePlayer()">同意して登録する</button>
             <div id="onlineStatus">氏名・住所・学校名などの個人情報は入力しないでください。</div>
         </div>
     </div>
@@ -551,6 +568,8 @@
         <button class="nav-btn" onclick="navigateTo('market', this)"><span>📈</span>銘柄一覧</button>
         <button class="nav-btn" onclick="navigateTo('ranking', this)"><span>🏆</span>ランキング</button>
         <button class="nav-btn" onclick="navigateTo('learn', this)"><span>🎓</span>学習</button>
+        <button class="nav-btn" type="button" onclick="lifeOpenLegal('terms')"><span>📄</span>利用規約</button>
+        <button class="nav-btn" type="button" onclick="lifeOpenLegal('privacy')"><span>🔒</span>プライバシー</button>
     </nav>
 
     <div id="env-modal" class="modal-overlay" style="display: none;">
@@ -1558,6 +1577,8 @@
         function closeIdentifierWelcome(){const e=document.getElementById('identifierWelcome');if(e)e.style.display='none';}
 
         async function registerOnlinePlayer(){
+            const ageConfirmed=document.getElementById('lifeAgeConfirm')?.checked===true;
+            if(!ageConfirmed){lifeSetStatus('登録するには、13歳以上であることと、18歳未満の場合は保護者の同意を得ていることの確認が必要です。');return;}
             const name=(document.getElementById('playerNameInput')?.value||'').trim();
             if(name.length<1||name.length>16){lifeSetStatus('利用者名は1〜16文字で入力してください。');return;}
             const btn=document.getElementById('playerRegisterButton');if(btn)btn.disabled=true;
@@ -1759,6 +1780,193 @@
             initApp();
             initAccessRecordNotice();
         });
+    </script>
+
+
+    <!-- 利用規約・プライバシーポリシー表示用 -->
+    <div id="life-legal-modal" class="life-legal-modal" aria-hidden="true">
+        <section class="life-legal-dialog" role="dialog" aria-modal="true" aria-labelledby="life-legal-title">
+            <button type="button" class="life-legal-close" onclick="lifeCloseLegal()" aria-label="閉じる">×</button>
+            <h2 id="life-legal-title">利用規約</h2>
+            <div id="life-legal-body" class="life-legal-body"></div>
+        </section>
+    </div>
+
+    <script>
+    (function(){
+        const lifeLegalDocuments={
+            terms:{title:'利用規約',html:`
+                <p><strong>制定・改定日：2026年11月17日</strong></p>
+                <p>この利用規約（以下「本規約」といいます。）は、株シミュレーターLIFEオンライン（以下「本サービス」といいます。）の利用条件を定めるものです。本サービスを利用する方（以下「利用者」といいます。）は、本規約の内容を確認し、同意したうえで利用してください。</p>
+
+                <h3>第1条（本サービスの目的と内容）</h3>
+                <p>1. 本サービスは、仮想の資金、株価、銘柄その他のシミュレーション用データを使用し、株式取引の仕組みや資産変動を体験・学習することを目的としたオンラインサービスです。</p>
+                <p>2. 本サービス上で行われる注文、売買、配当等の表示、資産計算およびランキングは、すべてシミュレーション上の処理です。実在する証券取引所への注文、実際の株式・金融商品・通貨の売買、資金の預かり、送金または決済は行いません。</p>
+                <p>3. 本サービスに表示される仮想資金、仮想資産、利益、損失、株価、銘柄情報、企業情報、配当、優待、ランキングおよびスコア等には、現実の金銭的価値、換金性または権利はありません。現金や商品等との交換、払い戻し、譲渡を請求することはできません。</p>
+                <p>4. 本サービスに登場する企業、銘柄、株価および企業情報には、シミュレーション用に作成された架空の情報が含まれます。実在する企業・銘柄・市場の情報と一致することを保証しません。</p>
+
+                <h3>第2条（投資助言ではないこと）</h3>
+                <p>1. 本サービスの表示内容は、学習・娯楽・シミュレーションを目的とするものであり、特定の金融商品や銘柄の購入・売却を勧誘または推奨するものではありません。</p>
+                <p>2. 本サービスの株価、チャート、企業情報、ランキング、利益率その他の数値を、実際の投資判断、金融商品の選択または資産運用の根拠として使用しないでください。</p>
+                <p>3. シミュレーション上の結果は、実際の市場における成果を示すものではなく、実際の取引結果や将来の利益を保証するものでもありません。</p>
+
+                <h3>第3条（利用対象・利用環境）</h3>
+                <p>1. 利用者は、自身が利用する端末、ブラウザおよび通信環境を用意し、自らの責任で本サービスを利用するものとします。</p>
+                <p>2. 本サービスを利用できるのは、利用開始時点で満13歳以上の方に限ります。13歳未満の方は、保護者の同意の有無にかかわらず、登録および利用できません。</p>
+                <p>3. 18歳未満の方は、登録および利用を開始する前に、保護者（親権者または未成年後見人）へ本サービスの内容、本規約およびプライバシーポリシーを説明し、保護者本人の同意を得なければなりません。保護者の同意を得られない場合は利用できません。</p>
+                <p>4. 登録時には、13歳以上であること、および18歳未満の場合は保護者の同意を得ていることを、画面上のチェック欄で確認します。虚偽の確認をしてはなりません。運営者が年齢要件または保護者同意の確認に疑義があると判断した場合、追加確認、利用停止または登録抹消を行うことがあります。</p>
+                <p>5. 本サービスは、すべての端末、OS、ブラウザまたは通信環境での動作を保証するものではありません。端末やブラウザの設定、通信状況、外部サービスの仕様変更等により、一部機能が利用できない場合があります。</p>
+
+                <h3>第4条（利用者登録・表示名）</h3>
+                <p>1. 本サービスのオンライン機能を利用する場合、画面の案内に従って利用者登録を行う必要があります。登録時には、第3条に定める年齢および保護者同意の確認が必須です。</p>
+                <p>2. 利用者は、表示名その他の登録情報について、第三者の個人情報、他人になりすます情報、他人に不快感や誤解を与える情報、法令または公序良俗に反する情報を登録してはなりません。</p>
+                <p>3. 表示名はランキング等に表示される場合があります。氏名、住所、電話番号、学校名、メールアドレス、SNSアカウントその他の個人を特定できる情報を表示名に含めないでください。</p>
+                <p>4. 利用者は、自身の利用者ID、認証情報および復旧用ファイルを適切に管理してください。これらを第三者に公開・共有したことによって生じた問題について、運営者は法令上認められる範囲で責任を負いません。</p>
+
+                <h3>第5条（利用者データと復旧用ファイル）</h3>
+                <p>1. 本サービスでは、オンライン機能の提供のため、利用者ID、認証に必要な情報、表示名、仮想資産、保有銘柄、取引履歴その他のデータをサーバー側で保存・処理します。</p>
+                <p>2. 利用者ID等の一部情報は、利用者のブラウザ内にも保存されます。ブラウザのデータ削除、端末の故障・変更、プライベートブラウズの利用、ブラウザ設定の変更等により、端末内の情報が失われる場合があります。</p>
+                <p>3. 本サービスの復旧用ファイルには、利用者を識別し、登録済みデータへのアクセスに使用される認証情報が含まれる場合があります。復旧用ファイルはパスワード等と同様に取り扱い、他人に送信したり、共有フォルダや公開サイトに置いたりしないでください。</p>
+                <p>4. 復旧用ファイルを紛失した場合、利用者IDだけでは復旧できないことがあります。運営者は、すべてのデータの復旧を保証しません。</p>
+
+                <h3>第6条（取引機能・利用回数の制限）</h3>
+                <p>1. 仮想株式の売買操作は、サーバー負荷の抑制および公平な利用環境の維持のため、1利用者につき5分間に最大30回までに制限されます。市場データの自動同期は、この取引操作回数には含まれません。</p>
+                <p>2. 取引可能時間や株価の更新条件は、サービス画面に表示される案内に従います。メンテナンス、障害、休日、外部サービスの状況等により、通常と異なる場合があります。</p>
+                <p>3. 制限を回避する目的で複数の利用者IDを作成・使用する行為、プログラム等によって取引を自動化する行為、サーバーに過度な負荷をかける行為は禁止します。</p>
+
+                <h3>第7条（ランキング・公開表示）</h3>
+                <p>1. ランキング機能では、利用者の表示名、総資産額、利益率、累計利益、スコア等の情報が他の利用者に表示される場合があります。</p>
+                <p>2. ランキングの順位や数値は、サーバーに保存されたデータおよび集計処理に基づくシミュレーション上の結果です。表示の遅延、集計の差異、障害等により、最新の状態と一致しない場合があります。</p>
+                <p>3. 利用者は、ランキングの表示内容を理由として、他の利用者に対する誹謗中傷、嫌がらせ、競争をあおる行為または個人情報の特定を試みる行為をしてはなりません。</p>
+
+                <h3>第8条（禁止事項）</h3>
+                <p>利用者は、次の行為を行ってはなりません。</p>
+                <ul>
+                    <li>本サービスのプログラム、画面、通信内容、データまたはランキングを不正に改変・操作する行為</li>
+                    <li>不正アクセス、認証回避、脆弱性の悪用、サーバーやデータベースへの不正な接続を試みる行為</li>
+                    <li>自動化ツール、スクリプト等を用いて、通常の利用を超えるアクセスや取引を行う行為</li>
+                    <li>他人の利用者ID、認証情報または復旧用ファイルを無断で使用する行為</li>
+                    <li>他の利用者、運営者または第三者の権利・利益・プライバシーを侵害する行為</li>
+                    <li>他人へのなりすまし、虚偽情報の登録、迷惑行為、嫌がらせ、脅迫または誹謗中傷</li>
+                    <li>本サービスや外部サービスに過度な負荷をかけ、運営・提供を妨げる行為</li>
+                    <li>本サービスを利用した営利目的の勧誘、広告、宣伝または営業活動（運営者が認めた場合を除く）</li>
+                    <li>法令、本規約または公序良俗に反する行為</li>
+                    <li>その他、運営者がサービスの安全・公平な運営に照らして不適切と判断する行為</li>
+                </ul>
+
+                <h3>第9条（利用の制限・登録情報への対応）</h3>
+                <p>利用者が本規約に違反した場合、または不正利用の疑いがある場合、運営者は事前の通知なく、必要な範囲で機能の制限、ランキング表示の停止、データの修正・削除、利用停止その他の措置を行うことがあります。</p>
+
+                <h3>第10条（サービス内容の変更・停止・終了）</h3>
+                <p>運営者は、保守、更新、障害対応、セキュリティ対策、外部サービスの仕様変更、運営上の都合その他必要がある場合、本サービスの全部または一部を変更、中断または終了することがあります。緊急の場合を除き、可能な範囲で事前に案内するよう努めますが、事前の告知を保証するものではありません。</p>
+
+                <h3>第11条（知的財産権）</h3>
+                <p>本サービスを構成するプログラム、デザイン、文章、画像、ロゴその他のコンテンツに関する権利は、運営者または正当な権利を有する第三者に帰属します。法令上認められる場合または権利者の許可がある場合を除き、無断で複製、転載、改変、再配布または商用利用することを禁止します。</p>
+
+                <h3>第12条（外部サービス）</h3>
+                <p>本サービスは、Google Apps Script、Googleスプレッドシート、Googleフォーム、GitHub Pagesその他の外部サービスを利用して提供される場合があります。外部サービスの障害、仕様変更、利用条件の変更または提供終了等により、本サービスの一部が利用できなくなることがあります。外部サービスの利用については、各提供事業者が定める規約等も適用されます。</p>
+
+                <h3>第13条（免責・責任の範囲）</h3>
+                <p>1. 運営者は、本サービスの完全性、正確性、継続性、特定目的への適合性、エラーが発生しないことおよびデータが常に保存されることを保証しません。</p>
+                <p>2. 通信障害、サーバー障害、外部サービスの停止、メンテナンス、端末・ブラウザの不具合、利用者の操作その他の事情により、データの遅延、欠落、消失または表示の不整合が生じる場合があります。</p>
+                <p>3. 運営者は、法令上免責が認められない場合を除き、本サービスの利用または利用不能によって生じた損害について責任を負いません。運営者に故意または重大な過失がある場合など、法令により責任が制限できない場合はこの限りではありません。</p>
+
+                <h3>第14条（規約の変更）</h3>
+                <p>運営者は、法令の改正、サービス内容の変更その他必要がある場合、本規約を変更することがあります。変更後の規約は、本サービス上に掲載した時点または掲載時に別途定めた時点から適用されます。重要な変更については、可能な範囲で本サービス上に案内します。</p>
+
+                <h3>第15条（準拠法・協議）</h3>
+                <p>本規約は日本法に準拠します。本サービスまたは本規約に関して疑問や問題が生じた場合、運営者と利用者は、関係法令に従い、誠実に解決を図るものとします。</p>
+
+                <h3>第16条（お問い合わせ）</h3>
+                <p>本サービスに関する問い合わせは、本サービスまたは運営者が別途案内する連絡先・窓口から行ってください。問い合わせの際には、パスワード、認証トークン、復旧用ファイル等の秘密情報を送信しないでください。</p>
+            `},
+            privacy:{title:'プライバシーポリシー',html:`
+                <p><strong>制定・改定日：2026年11月17日</strong></p>
+                <p>株シミュレーターLIFEオンライン（以下「本サービス」といいます。）では、利用者に関する情報を適切に取り扱うことが重要であると考えています。本ポリシーでは、本サービスが取り扱う情報、その利用目的、保存方法および利用者が確認できる事項について説明します。</p>
+
+                <h3>第1条（基本方針）</h3>
+                <p>運営者は、本サービスの提供・維持に必要な範囲で利用者に関する情報を取り扱い、関係法令および本ポリシーに従って適切な管理に努めます。本ポリシーは、本サービスの実際の機能および利用する外部サービスに応じて適用されます。</p>
+
+                <h3>第2条（取り扱う情報）</h3>
+                <p>本サービスでは、機能の提供・維持、利用者の識別、障害対応および不正利用防止のため、次の情報を取り扱う場合があります。</p>
+                <ul>
+                    <li><strong>利用者登録情報：</strong>利用者ID、表示名、認証・アカウント管理に必要な情報</li>
+                    <li><strong>シミュレーション情報：</strong>仮想資産、現金残高、保有銘柄、保有株数、取引履歴、取引結果、ランキングやスコアの算出に必要な情報</li>
+                    <li><strong>アクセス記録：</strong>アクセス日時、アクセスしたページのURL、ページタイトル</li>
+                    <li><strong>端末・環境情報：</strong>端末の種類、OS、ブラウザの種類など、アクセス時にブラウザから取得できる情報</li>
+                    <li><strong>問い合わせ情報：</strong>利用者が問い合わせ窓口を通じて任意に送信した内容や、対応に必要な情報</li>
+                </ul>
+                <p>本サービスは、利用者に対して、住所、電話番号、学校名、実名、メールアドレス等を表示名として登録することを求めるものではありません。利用者は、表示名や問い合わせ内容に不要な個人情報を含めないでください。</p>
+                <p>登録時には、利用者本人による「13歳以上であること」の確認、および18歳未満の場合の「保護者の同意を得ていること」の確認を求めます。このチェック欄は登録画面での確認に使用し、生年月日や本人確認書類の入力・送信は求めません。</p>
+
+                <h3>第3条（情報の取得方法）</h3>
+                <p>1. 利用者登録情報およびシミュレーション情報は、利用者による登録、注文、売買その他の操作に応じて取得・更新されます。</p>
+                <p>2. アクセス記録については、本サービスのページ表示時に、アクセス日時、ページURL、ページタイトル、端末種別、OSおよびブラウザ種別等を取得し、Googleフォーム等を通じて記録する仕組みを設けています。記録処理は通信環境や外部サービスの状態により失敗する場合があります。</p>
+                <p>3. ブラウザ内に保存される利用者情報は、利用者登録時等に本サービスの機能によって保存されます。</p>
+
+                <h3>第4条（情報の利用目的）</h3>
+                <p>取得した情報は、次の目的の範囲で利用します。</p>
+                <ul>
+                    <li>利用者の識別、登録状態の確認および認証</li>
+                    <li>仮想資産、保有銘柄、取引履歴等の保存・更新・表示</li>
+                    <li>ランキング、順位、利益率、スコア等の集計および表示</li>
+                    <li>取引回数制限その他の利用ルールの適用</li>
+                    <li>アクセス状況の把握、利用傾向の確認およびサービス改善</li>
+                    <li>不具合の調査、障害対応、保守およびセキュリティ対策</li>
+                    <li>不正利用、規約違反またはサービスへの妨害行為の確認・防止</li>
+                    <li>利用者からの問い合わせへの対応</li>
+                </ul>
+
+                <h3>第5条（保存先・利用する外部サービス）</h3>
+                <p>1. 本サービスのオンライン機能では、Google Apps ScriptおよびGoogleスプレッドシートを利用して、利用者登録情報、仮想資産、保有銘柄、取引履歴、ランキング等をサーバー側で保存・処理します。</p>
+                <p>2. アクセス情報の記録にはGoogleフォームを利用する仕組みを設けています。また、本サービスのページ公開にはGitHub Pages等の外部サービスを利用する場合があります。</p>
+                <p>3. これらの外部サービスに情報が送信・保存される場合、各サービス提供事業者の規約、プライバシーポリシーおよびシステム仕様に従って処理されます。外部サービス側での保存期間、管理方法、処理地域等は、各提供事業者の案内をご確認ください。</p>
+                <p>4. 外部サービスの仕様変更、障害または提供終了等により、情報の記録・表示・保存に影響が生じる場合があります。</p>
+
+                <h3>第6条（端末内の保存）</h3>
+                <p>1. 利用者IDや認証に必要な情報等の一部は、ブラウザのローカルストレージ等を利用して利用者の端末内に保存されます。これにより、次回アクセス時に利用者情報を引き継ぐ機能を提供します。</p>
+                <p>2. ブラウザの閲覧データ削除、サイトデータ削除、端末の初期化・故障・変更、ブラウザの設定変更等によって、端末内の情報が失われることがあります。</p>
+                <p>3. 利用者がダウンロードする復旧用JSONファイルには、利用者IDおよび認証に必要な情報が含まれる場合があります。第三者に渡したり、インターネット上に公開したりしないでください。</p>
+
+                <h3>第7条（ランキング等で他の利用者に表示される情報）</h3>
+                <p>ランキング機能を利用する場合、登録した表示名、総資産額、利益率、累計利益、スコア等、ランキング表示に必要な情報が他の利用者に表示されることがあります。ランキングに表示されることを望まない個人情報や、個人を特定できる名前を表示名に設定しないでください。</p>
+
+                <h3>第8条（第三者提供・委託）</h3>
+                <p>運営者は、法令に基づく場合等を除き、利用者の情報を本人の同意なく第三者に提供しないよう努めます。ただし、本サービスの提供に必要な外部サービス事業者のシステムを利用するため、情報を当該サービスへ送信し、保存・処理を委ねる場合があります。また、法令に基づく公的機関からの適法な要請等があった場合には、必要な範囲で情報を開示することがあります。</p>
+
+                <h3>第9条（保存期間・削除）</h3>
+                <p>情報は、利用目的の達成および本サービスの運営に必要な期間、保存する場合があります。保存期間は情報の種類、運営上の必要性、外部サービスの仕様等によって異なります。利用者から削除等の希望があった場合でも、技術上の制約、本人確認、法令上の必要性、障害調査や不正利用防止のため、直ちに削除できない場合があります。</p>
+
+                <h3>第10条（安全管理）</h3>
+                <p>運営者は、取り扱う情報について、不正アクセス、漏えい、紛失、破壊または改ざん等を防止するため、合理的な範囲で安全管理に努めます。ただし、インターネット通信、利用者の端末、外部サービスおよび情報システムに完全な安全性を保証するものではありません。</p>
+                <p>利用者も、利用者ID、認証情報および復旧用ファイルを適切に管理し、他人と共有しないようにしてください。</p>
+
+                <h3>第11条（利用者による確認・訂正・削除等）</h3>
+                <p>利用者本人が自身の情報の確認、訂正、削除等を希望する場合は、本サービスまたは運営者が別途案内する問い合わせ窓口からご連絡ください。本人確認をお願いする場合があります。対応の可否や方法は、対象情報の種類、保存先、外部サービスの仕様および法令上の要件等を踏まえて判断します。</p>
+
+                <h3>第12条（未成年の利用者へのお願い）</h3>
+                <p>未成年の利用者は、表示名や問い合わせ内容に実名、住所、電話番号、学校名、顔写真、SNSアカウント等の個人情報を含めないよう注意してください。復旧用ファイルや利用者ID等も、友人を含む第三者に共有しないでください。個人情報の扱いに不安がある場合は、保護者や学校関係者に相談してください。</p>
+
+                <h3>第13条（本ポリシーの変更）</h3>
+                <p>運営者は、法令、サービス内容、利用する外部サービスまたは情報の取り扱い方法の変更等に応じて、本ポリシーを改定することがあります。変更後の内容は本サービス上に掲載します。重要な変更については、可能な範囲で本サービス上に案内します。</p>
+
+                <h3>第14条（お問い合わせ）</h3>
+                <p>本ポリシーおよび情報の取り扱いに関するお問い合わせは、本サービスまたは運営者が別途案内する連絡先・窓口から行ってください。問い合わせの際、パスワード、認証トークン、復旧用ファイル等の秘密情報を送らないでください。</p>
+            `}
+        };
+        window.lifeOpenLegal=function(type){
+            const doc=lifeLegalDocuments[type];if(!doc)return;
+            document.getElementById('life-legal-title').textContent=doc.title;
+            document.getElementById('life-legal-body').innerHTML=doc.html;
+            const modal=document.getElementById('life-legal-modal');modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');
+            document.body.style.overflow='hidden';
+        };
+        window.lifeCloseLegal=function(){
+            const modal=document.getElementById('life-legal-modal');modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';
+        };
+        document.getElementById('life-legal-modal').addEventListener('click',function(e){if(e.target===this)lifeCloseLegal();});
+        document.addEventListener('keydown',function(e){if(e.key==='Escape')lifeCloseLegal();});
+    })();
     </script>
 </body>
 </html>
