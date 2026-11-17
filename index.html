@@ -152,6 +152,10 @@
         .life-age-confirm{display:flex!important;align-items:flex-start;gap:9px;margin:16px 0 6px!important;font-size:.82rem!important;line-height:1.55}
         .life-age-confirm input{width:18px;height:18px;flex:0 0 18px;margin:1px 0 0;accent-color:#1976e8}
         .player-register-card .life-age-note{font-size:.76rem;color:#a33b32;margin:4px 0 10px}
+        .life-age-category{border:1px solid #dce6f2;border-radius:12px;padding:13px 15px;margin:14px 0;background:#f8fbff}
+        .life-age-category legend{font-size:.88rem;font-weight:800;color:#174d8d;padding:0 5px}
+        .life-age-category label{display:flex;align-items:flex-start;gap:9px;margin:10px 0;font-size:.88rem;line-height:1.6;cursor:pointer}
+        .life-age-category input{width:18px;height:18px;flex:0 0 18px;margin:2px 0 0;accent-color:#1976e8}
         #onlineStatus{font-size:.8rem;color:#6d7e93;margin-top:9px;min-height:20px}
 
         /* 法定代理人同意 専用画面 */
@@ -547,9 +551,14 @@
                 <button type="button" onclick="lifeOpenLegal('terms')">📄 利用規約を確認する</button>
                 <button type="button" onclick="lifeOpenLegal('privacy')">🔒 プライバシーポリシーを確認する</button>
             </div>
-            <label class="life-age-confirm"><input id="lifeAgeConfirm" type="checkbox" /> 私は登録時点で満13歳以上です。</label>
+            <fieldset class="life-age-category">
+                <legend>年齢について確認してください</legend>
+                <label><input type="radio" name="lifeAgeCategory" value="adult" onchange="lifeAgeCategoryChanged()" /> 私は登録時点で18歳以上です。</label>
+                <label><input type="radio" name="lifeAgeCategory" value="minor" onchange="lifeAgeCategoryChanged()" /> 私は登録時点で13歳以上18歳未満です。</label>
+            </fieldset>
+            <p class="life-age-note">13歳未満の方は、法定代理人の同意があっても登録・利用できません。</p>
             <input id="lifeGuardianConfirm" type="checkbox" hidden />
-            <div class="life-guardian-entry">
+            <div class="life-guardian-entry" id="lifeGuardianEntry" style="display:none">
                 <div class="life-guardian-entry-text"><strong>18歳未満の方</strong><span id="lifeGuardianEntryStatus">法定代理人（親権者または未成年後見人）の同意確認が必要です。</span></div>
                 <button type="button" onclick="lifeOpenGuardianScreen()">法定代理人の同意を確認する</button>
             </div>
@@ -1625,7 +1634,12 @@
             try{return JSON.parse(localStorage.getItem(LIFE_PROFILE_KEY)||'null')}catch(e){return null}
         }
         function lifeHasValidConsent(p){
-            return !!(p && p.ageConfirmed === true && p.guardianConsentConfirmed === true &&
+            const validAgeCategory=p && (p.ageCategory === 'adult' || p.ageCategory === 'minor');
+            const guardianValid=p && (p.ageCategory === 'adult'
+                ? p.guardianConsentRequired === false
+                : p.ageCategory === 'minor' && p.guardianConsentRequired === true && p.guardianConsentConfirmed === true);
+            return !!(p && validAgeCategory && p.ageStatusVersion === '2026-11-17-1' &&
+                p.ageConfirmed === true && guardianValid &&
                 p.termsAccepted === true && p.privacyAccepted === true &&
                 p.termsVersion === LIFE_TERMS_VERSION && p.privacyVersion === LIFE_PRIVACY_VERSION &&
                 typeof p.consentAt === 'string' && p.consentAt.length > 0);
@@ -1660,6 +1674,21 @@
         function saveIdentifierText(){const id=getTradeIdentifier();const b=new Blob(['株シミュレーターLIFE 利用者ID\n'+id+'\n\nこのIDとブラウザ保存データを大切に保管してください。'],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='LIFE_player_ID.txt';a.click();URL.revokeObjectURL(a.href);}
         function closeIdentifierWelcome(){const e=document.getElementById('identifierWelcome');if(e)e.style.display='none';}
 
+        function lifeAgeCategoryChanged(){
+            const selected=document.querySelector('input[name="lifeAgeCategory"]:checked')?.value||'';
+            const entry=document.getElementById('lifeGuardianEntry');
+            const guardian=document.getElementById('lifeGuardianConfirm');
+            const status=document.getElementById('lifeGuardianEntryStatus');
+            if(entry)entry.style.display=selected==='minor'?'grid':'none';
+            if(selected==='adult'){
+                if(guardian)guardian.checked=false;
+                if(status)status.textContent='18歳以上のため、法定代理人の同意確認は不要です。';
+            }else if(selected==='minor'){
+                if(guardian)guardian.checked=false;
+                if(status)status.textContent='法定代理人（親権者または未成年後見人）の同意確認が必要です。';
+            }else if(guardian){guardian.checked=false;}
+        }
+
         function lifeOpenGuardianScreen(){
             const screen=document.getElementById('lifeGuardianScreen');
             const check=document.getElementById('lifeGuardianScreenCheck');
@@ -1687,12 +1716,14 @@
         }
 
         async function registerOnlinePlayer(){
-            const ageConfirmed=document.getElementById('lifeAgeConfirm')?.checked===true;
+            const ageCategory=document.querySelector('input[name="lifeAgeCategory"]:checked')?.value||'';
+            const ageConfirmed=ageCategory==='adult'||ageCategory==='minor';
             const guardianConfirmed=document.getElementById('lifeGuardianConfirm')?.checked===true;
+            const guardianRequired=ageCategory==='minor';
             const termsAccepted=document.getElementById('lifeTermsConfirm')?.checked===true;
             const privacyAccepted=document.getElementById('lifePrivacyConfirm')?.checked===true;
-            if(!ageConfirmed){lifeSetStatus('13歳以上であることを確認できないため、登録できません。');return;}
-            if(!guardianConfirmed){lifeSetStatus('18歳未満の場合は、親権者または未成年後見人などの法定代理人の同意確認が必要です。');return;}
+            if(!ageConfirmed){lifeSetStatus('18歳以上か、13歳以上18歳未満かを選択してください。');return;}
+            if(guardianRequired&&!guardianConfirmed){lifeSetStatus('18歳未満の場合は、親権者または未成年後見人などの法定代理人の同意確認が必要です。');return;}
             if(!termsAccepted||!privacyAccepted){lifeSetStatus('利用規約とプライバシーポリシーの両方への同意が必要です。');return;}
             const name=(document.getElementById('playerNameInput')?.value||'').trim();
             if(name.length<1||name.length>16){lifeSetStatus('利用者名は1〜16文字で入力してください。');return;}
@@ -1701,7 +1732,9 @@
             const consentAt=new Date().toISOString();
             const profile={
                 playerId:lifeNewPlayerId(),token:lifeRandomToken(),name,createdAt:consentAt,
-                ageConfirmed:true,guardianConsentConfirmed:true,
+                ageConfirmed:true,ageCategory,ageStatusVersion:'2026-11-17-1',
+                guardianConsentRequired:guardianRequired,
+                guardianConsentConfirmed:guardianRequired?guardianConfirmed:false,
                 termsAccepted:true,privacyAccepted:true,
                 termsVersion:LIFE_TERMS_VERSION,privacyVersion:LIFE_PRIVACY_VERSION,
                 consentAt
