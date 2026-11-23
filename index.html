@@ -2225,6 +2225,68 @@
 
   let checking = false;
   let maintenanceOverlay = null;
+  let loadingOverlay = null;
+
+  // 初回の稼働状況確認中だけ、読み込み画面を表示する
+  function showLoading() {
+    if (loadingOverlay || !document.body) return;
+
+    loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'kabuonrain-loading-screen';
+    loadingOverlay.setAttribute('role', 'status');
+    loadingOverlay.setAttribute('aria-live', 'polite');
+
+    Object.assign(loadingOverlay.style, {
+      position: 'fixed',
+      inset: '0',
+      zIndex: '2147483646',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '18px',
+      width: '100%',
+      minHeight: '100%',
+      background: '#f8fafc',
+      color: '#263445',
+      textAlign: 'center',
+      boxSizing: 'border-box',
+      fontFamily: 'Arial, "Noto Sans JP", sans-serif'
+    });
+
+    const spinner = document.createElement('div');
+    spinner.setAttribute('aria-hidden', 'true');
+    Object.assign(spinner.style, {
+      width: '48px',
+      height: '48px',
+      border: '5px solid #dce5ee',
+      borderTopColor: '#2563eb',
+      borderRadius: '50%',
+      boxSizing: 'border-box',
+      animation: 'kabuonrain-spin 0.8s linear infinite'
+    });
+
+    const label = document.createElement('div');
+    label.textContent = '読み込み中...';
+    Object.assign(label.style, {
+      fontSize: '17px',
+      fontWeight: '600',
+      letterSpacing: '0.04em'
+    });
+
+    const style = document.createElement('style');
+    style.textContent = '@keyframes kabuonrain-spin { to { transform: rotate(360deg); } }';
+
+    loadingOverlay.append(style, spinner, label);
+    document.body.appendChild(loadingOverlay);
+  }
+
+  function hideLoading() {
+    if (loadingOverlay) {
+      loadingOverlay.remove();
+      loadingOverlay = null;
+    }
+  }
 
   function showMaintenance() {
     if (maintenanceOverlay || !document.body) return;
@@ -2351,8 +2413,13 @@
       console.warn('[kabuonrain] 稼働状況を確認できませんでした。', error);
     } finally {
       checking = false;
+      // 初回確認が成功・失敗のどちらでも、読み込み表示を解除する
+      hideLoading();
     }
   }
+
+  // 初回確認中は読み込み画面を表示してからAPIへアクセス
+  showLoading();
 
   // 初回確認と、その後60秒ごとの定期確認
   checkStatus();
