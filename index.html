@@ -385,8 +385,34 @@
 @media(max-width:600px){.life-settings-overlay{padding:8px}.life-settings-window{padding:18px 15px;max-height:88vh}.life-settings-row{align-items:flex-start}}
 </style>
 
+
+    <!-- B! ID authentication gate: the LIFE player account remains separate. -->
+    <style id="bid-auth-gate-style">
+      html.bid-auth-pending body > *:not(#bid-auth-screen) { visibility: hidden !important; }
+      #bid-auth-screen {
+        position: fixed; inset: 0; z-index: 20000; display: flex;
+        align-items: center; justify-content: center; padding: 24px;
+        background: #f3f7fc; color: #20334d; font-family: system-ui,-apple-system,"Yu Gothic",Meiryo,sans-serif;
+      }
+      #bid-auth-screen .bid-auth-card {
+        width: min(420px,100%); padding: 28px; border: 1px solid #dce6f2;
+        border-radius: 16px; background: #fff; text-align: center;
+        box-shadow: 0 12px 40px rgba(36,75,125,.12);
+      }
+      #bid-auth-screen .bid-auth-mark { font-size: 1.35rem; font-weight: 900; color: #1767c4; }
+      #bid-auth-screen p { margin: 12px 0 0; color: #6d7e93; line-height: 1.7; font-size: .9rem; }
+      #bid-auth-screen .bid-auth-spinner {
+        width: 26px; height: 26px; margin: 20px auto 0; border: 3px solid #dce6f2;
+        border-top-color: #1976e8; border-radius: 50%; animation: bidAuthSpin .8s linear infinite;
+      }
+      @keyframes bidAuthSpin { to { transform: rotate(360deg); } }
+    </style>
+    <script>document.documentElement.classList.add('bid-auth-pending');</script>
+    <script src="https://bainarinoakaunto.github.io/b-id/b-id.js"></script>
+
 </head>
 <body>
+<div id="bid-auth-screen" role="status" aria-live="polite"><div class="bid-auth-card"><div class="bid-auth-mark">B! ID</div><p>ログイン状態を確認しています。<br>確認後、株シミュレーターを開きます。</p><div class="bid-auth-spinner" aria-hidden="true"></div></div></div>
 
     <header><div class="logo">
   <span class="life-mark">￥</span>
@@ -1960,8 +1986,23 @@
         const originalInitAppForBackup=initApp;
 
         window.addEventListener('load', function () {
-            initApp();
-            initAccessRecordNotice();
+            // B! ID authenticates access only. LIFE playerId, profile, consent,
+            // rankings and trading data continue to use their existing system.
+            if (!window.BID || typeof BID.requireLogin !== 'function') {
+                document.getElementById('bid-auth-screen').innerHTML =
+                    '<div class="bid-auth-card"><div class="bid-auth-mark">B! ID</div><p>B! IDを読み込めませんでした。通信環境を確認して、ページを再読み込みしてください。</p></div>';
+                return;
+            }
+            BID.requireLogin().then(function () {
+                document.documentElement.classList.remove('bid-auth-pending');
+                var gate = document.getElementById('bid-auth-screen');
+                if (gate) gate.remove();
+                initApp();
+                initAccessRecordNotice();
+            }).catch(function () {
+                document.getElementById('bid-auth-screen').innerHTML =
+                    '<div class="bid-auth-card"><div class="bid-auth-mark">B! ID</div><p>ログイン確認に失敗しました。時間をおいて再読み込みしてください。</p></div>';
+            });
         });
     </script>
 
