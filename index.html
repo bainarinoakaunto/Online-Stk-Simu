@@ -1988,7 +1988,13 @@
         window.addEventListener('load', function () {
             // 先にBAINARIの稼働状況を確認し、メンテナンス中ならログイン・本体起動を行わない。
             Promise.resolve(window.BAINARI_STATUS_READY).then(function (statusResult) {
-                if (statusResult === 'maintenance') return;
+                if (statusResult === 'maintenance') {
+                    // 認証待機レイヤーを解除し、先に生成されたメンテナンス画面を表示する。
+                    document.documentElement.classList.remove('bid-auth-pending');
+                    var maintenanceGate = document.getElementById('bid-auth-screen');
+                    if (maintenanceGate) maintenanceGate.remove();
+                    return; // メンテナンス中はアプリ本体を起動しない。
+                }
 
                 // 2026年12月25日まではB! ID認証を一時的に省略する。
                 // 株シミュレーター側のプレイヤー登録・年齢確認・利用規約同意は従来どおり必要。
