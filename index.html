@@ -1986,22 +1986,27 @@
         const originalInitAppForBackup=initApp;
 
         window.addEventListener('load', function () {
-            // B! ID authenticates access only. LIFE playerId, profile, consent,
-            // rankings and trading data continue to use their existing system.
-            if (!window.BID || typeof BID.requireLogin !== 'function') {
-                document.getElementById('bid-auth-screen').innerHTML =
-                    '<div class="bid-auth-card"><div class="bid-auth-mark">B! ID</div><p>B! IDを読み込めませんでした。通信環境を確認して、ページを再読み込みしてください。</p></div>';
-                return;
-            }
-            BID.requireLogin().then(function () {
-                document.documentElement.classList.remove('bid-auth-pending');
-                var gate = document.getElementById('bid-auth-screen');
-                if (gate) gate.remove();
-                initApp();
-                initAccessRecordNotice();
-            }).catch(function () {
-                document.getElementById('bid-auth-screen').innerHTML =
-                    '<div class="bid-auth-card"><div class="bid-auth-mark">B! ID</div><p>ログイン確認に失敗しました。時間をおいて再読み込みしてください。</p></div>';
+            // 先にBAINARIの稼働状況を確認し、メンテナンス中ならログイン・本体起動を行わない。
+            Promise.resolve(window.BAINARI_STATUS_READY).then(function (statusResult) {
+                if (statusResult === 'maintenance') return;
+
+                // B! ID authenticates access only. LIFE playerId, profile, consent,
+                // rankings and trading data continue to use their existing system.
+                if (!window.BID || typeof BID.requireLogin !== 'function') {
+                    document.getElementById('bid-auth-screen').innerHTML =
+                        '<div class="bid-auth-card"><div class="bid-auth-mark">B! ID</div><p>B! IDを読み込めませんでした。通信環境を確認して、ページを再読み込みしてください。</p></div>';
+                    return;
+                }
+                BID.requireLogin().then(function () {
+                    document.documentElement.classList.remove('bid-auth-pending');
+                    var gate = document.getElementById('bid-auth-screen');
+                    if (gate) gate.remove();
+                    initApp();
+                    initAccessRecordNotice();
+                }).catch(function () {
+                    document.getElementById('bid-auth-screen').innerHTML =
+                        '<div class="bid-auth-card"><div class="bid-auth-mark">B! ID</div><p>ログイン確認に失敗しました。時間をおいて再読み込みしてください。</p></div>';
+                });
             });
         });
     </script>
@@ -2422,7 +2427,7 @@
   }
 
   async function checkStatus() {
-    if (checking) return;
+    if (checking) return 'unknown';
     checking = true;
 
     try {
@@ -2437,21 +2442,25 @@
 
       if (!service) {
         console.warn('[kabuonrain] 対象サービスが見つかりません。');
-        return;
+        return 'unknown';
       }
 
       const status = String(service.status || '').trim();
 
       if (status === 'メンテナンス中') {
         showMaintenance();
+        return 'maintenance';
       } else if (status === '稼働中') {
         hideMaintenance();
+        return 'online';
       }
-      // その他の状態・取得エラーでは、現在の表示を変更しません。
+      // 判定できない状態では、既存の表示を維持して通常のログイン確認へ進む。
+      return 'unknown';
 
     } catch (error) {
-      // 通信に失敗しても元のページを消さず、そのまま表示します。
+      // 状態APIに接続できない場合はログを残し、ログイン確認へ進む。
       console.warn('[kabuonrain] 稼働状況を確認できませんでした。', error);
+      return 'unknown';
     } finally {
       checking = false;
       // 初回確認が成功・失敗のどちらでも、読み込み表示を解除する
@@ -2462,8 +2471,10 @@
   // 初回確認中は読み込み画面を表示してからAPIへアクセス
   showLoading();
 
-  // 初回確認と、その後60秒ごとの定期確認
-  checkStatus();
+  // 初回確認の結果をB! ID認証側へ渡し、メンテナンスなら認証を止める
+  window.BAINARI_STATUS_READY = checkStatus();
+
+  // その後も60秒ごとに稼働状況を再確認
   window.setInterval(checkStatus, CHECK_INTERVAL);
 })();
 </script>
