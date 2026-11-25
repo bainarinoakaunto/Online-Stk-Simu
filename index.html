@@ -1990,8 +1990,21 @@
             Promise.resolve(window.BAINARI_STATUS_READY).then(function (statusResult) {
                 if (statusResult === 'maintenance') return;
 
-                // B! ID authenticates access only. LIFE playerId, profile, consent,
-                // rankings and trading data continue to use their existing system.
+                // 2026年12月25日まではB! ID認証を一時的に省略する。
+                // 株シミュレーター側のプレイヤー登録・年齢確認・利用規約同意は従来どおり必要。
+                // 期限は日本時間の2026年12月26日 00:00。
+                var bidTemporaryFreeUntil = Date.parse('2026-12-26T00:00:00+09:00');
+                if (Date.now() < bidTemporaryFreeUntil) {
+                    document.documentElement.classList.remove('bid-auth-pending');
+                    var temporaryGate = document.getElementById('bid-auth-screen');
+                    if (temporaryGate) temporaryGate.remove();
+                    initApp();
+                    initAccessRecordNotice();
+                    return;
+                }
+
+                // 期限終了後は通常どおりB! ID認証を必須にする。
+                // LIFE playerId, profile, consent, rankings and trading data remain separate.
                 if (!window.BID || typeof BID.requireLogin !== 'function') {
                     document.getElementById('bid-auth-screen').innerHTML =
                         '<div class="bid-auth-card"><div class="bid-auth-mark">B! ID</div><p>B! IDを読み込めませんでした。通信環境を確認して、ページを再読み込みしてください。</p></div>';
